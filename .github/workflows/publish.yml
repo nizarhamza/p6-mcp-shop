@@ -1,0 +1,77 @@
+# Publishes a skill when a maintainer adds the label "approved" to a share issue.
+# The issue body is untrusted: it is read by tools/catalog.py from the event file, never put in a shell line.
+name: Publish an approved skill
+
+on:
+  issues:
+    types: [labeled]
+
+permissions:
+  contents: write
+  issues: write
+
+concurrency:
+  group: publish
+  cancel-in-progress: false
+
+env:
+  P6MCP_REF: main  # P6 MCP release whose rules check the skills: pin to v1.8.0 once it is tagged (bump it to accept newer tools)
+
+jobs:
+  publish:
+    if: github.event.label.name == 'approved'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Only maintainers approve
+        env:
+          GH_TOKEN: ${{ github.token }}
+          SENDER: ${{ github.event.sender.login }}
+        run: |
+          perm=$(gh api "repos/$GITHUB_REPOSITORY/collaborators/$SENDER/permission" --jq .permission)
+          if [ "$perm" != "admin" ] && [ "$perm" != "maintain" ]; then
+            echo "$SENDER cannot approve skills ($perm)"; exit 1
+          fi
+
+      - uses: actions/checkout@v4
+
+      - name: P6 MCP rules
+        uses: actions/checkout@v4
+        with:
+          repository: nizarhamza/p6-mcp
+          ref: ${{ env.P6MCP_REF }}
+          path: p6mcp-src
+          sparse-checkout: p6mcp
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Check and write the skill
+        id: publish
+        env:
+          PYTHONPATH: p6mcp-src
+        run: python tools/catalog.py publish --event "$GITHUB_EVENT_PATH" --out "$RUNNER_TEMP/result.json"
+
+      - name: Commit
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add skills index.json
+          git commit -m "$(jq -r .commit "$RUNNER_TEMP/result.json")"
+          git push
+
+      - name: Report on the issue
+        if: always()
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ISSUE: ${{ github.event.issue.number }}
+        run: |
+          if [ -f "$RUNNER_TEMP/result.json" ]; then jq -r .message "$RUNNER_TEMP/result.json" > "$RUNNER_TEMP/msg.md"
+          else echo "The publication failed before the skill was checked: see the workflow run." > "$RUNNER_TEMP/msg.md"; fi
+          gh issue comment "$ISSUE" --body-file "$RUNNER_TEMP/msg.md"
+          if [ "${{ job.status }}" = "success" ]; then
+            gh issue edit "$ISSUE" --remove-label approved --add-label published
+            gh issue close "$ISSUE" --reason completed
+          else
+            gh issue edit "$ISSUE" --remove-label approved --add-label needs-changes
+          fi

@@ -1,0 +1,40 @@
+name: Check the catalog
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+env:
+  P6MCP_REF: main  # same as publish.yml (pin to v1.8.0 once it is tagged)
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: P6 MCP rules
+        uses: actions/checkout@v4
+        with:
+          repository: nizarhamza/p6-mcp
+          ref: ${{ env.P6MCP_REF }}
+          path: p6mcp-src
+          sparse-checkout: p6mcp
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Every skill valid, index.json up to date
+        env:
+          PYTHONPATH: p6mcp-src
+        run: python tools/catalog.py check
+
+      - name: Catalog tool tests
+        env:
+          PYTHONPATH: p6mcp-src
+        run: python -m unittest discover -s tools -v

@@ -1,0 +1,31 @@
+name: Share a P6 skill
+description: Submit one of your P6 MCP skills to the shop (P6 MCP Settings, Skills, Share on GitHub fills this in).
+title: "Share: "
+labels: ["submission"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thank you for sharing. P6 MCP filled in your skill below: check it, then click **Create**.
+        The maintainer reviews every skill before it is published under the Apache-2.0 license.
+        **Never include client names, project names or schedule data.**
+  - type: textarea
+    id: skill
+    attributes:
+      label: Skill
+      description: The skill as P6 MCP wrote it (JSON). If this field is empty, paste the text P6 MCP copied to your clipboard.
+      render: json
+    validations:
+      required: true
+  - type: textarea
+    id: notes
+    attributes:
+      label: Notes for the reviewer
+      description: Optional. What the skill is for and how you tested it.
+  - type: checkboxes
+    id: terms
+    attributes:
+      label: License
+      options:
+        - label: I wrote this skill and publish it under the Apache-2.0 license, without client or project data.
+          required: true
