@@ -1,0 +1,2 @@
+# LF everywhere, also in Windows checkouts: index.json carries the SHA256 of each p6mcp.json as served by GitHub
+* text=auto eol=lf

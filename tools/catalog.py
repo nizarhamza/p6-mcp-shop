@@ -5,6 +5,7 @@ tag pinned in the workflows (P6MCP_REF, put on PYTHONPATH). Standard library onl
 
     python tools/catalog.py publish --event "$GITHUB_EVENT_PATH" --out result.json
     python tools/catalog.py index      # rebuild index.json (after removing a skill by hand)
+    python tools/catalog.py builtins   # write the built-in skills of that P6 MCP (after bumping P6MCP_REF)
     python tools/catalog.py check      # every skill valid and index.json up to date (exit 1 otherwise)
 
 The issue body is untrusted text: it is only parsed as JSON and checked, never run or passed to a shell.
@@ -25,6 +26,7 @@ from p6mcp import shop, skills
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SECTION = "Skill"  # label of the issue form's JSON field (id: skill)
+MAINTAINER = shop.REPO.split("/")[0]  # author of the built-in skills
 
 
 class Refused(ValueError):
@@ -61,13 +63,22 @@ def _write(path: str, text: str) -> None:
         fh.write(text)
 
 
+def _read_meta(root: str, name: str):
+    path = _meta_path(root, name)
+    if not os.path.exists(path):
+        return None
+    with open(path, encoding="utf-8") as fh:
+        return json.load(fh)
+
+
 def write_skill(root: str, meta: dict) -> None:
-    """skills/<name>/: p6mcp.json (what P6 MCP installs) plus SKILL.md and the reference files to browse.
-    The folder is rewritten: files of an earlier version that are gone are removed."""
+    """skills/<name>/: p6mcp.json (what P6 MCP installs) plus SKILL.md and the reference files to browse
+    (a built-in skill: SKILL.md as P6 MCP writes it for the clients). The folder is rewritten: files of an
+    earlier version that are gone are removed."""
     folder = os.path.join(root, "skills", meta["name"])
     if os.path.isdir(folder):
         shutil.rmtree(folder)
-    skill = skills.from_config(shop.to_stored(meta))
+    skill = skills.BY_NAME[meta["name"]] if meta.get("builtin") else skills.from_config(shop.to_stored(meta))
     for rel, text in skills.skill_files(skill).items():
         _write(os.path.join(folder, *rel.split("/")), text)
     _write(os.path.join(folder, shop.META), json.dumps(meta, indent=2, ensure_ascii=False) + "\n")
@@ -86,10 +97,10 @@ def publish(event: dict, root: str = ROOT, now: str | None = None) -> dict:
         raise Refused("; ".join(errs))
     name = item["name"]
     version = 1
-    old_path = _meta_path(root, name)
-    if os.path.exists(old_path):
-        with open(old_path, encoding="utf-8") as fh:
-            old = json.load(fh)
+    old = _read_meta(root, name)
+    if old is not None:
+        if old.get("builtin"):
+            raise Refused(f"the name {name!r} is a built-in skill of P6 MCP: rename the skill and share it again")
         if old.get("author") != author:
             raise Refused(f"the name {name!r} is already published by @{old.get('author')}: rename the skill "
                           "(Skills page, Edit) and share it again")
@@ -107,6 +118,34 @@ def publish(event: dict, root: str = ROOT, now: str | None = None) -> dict:
     return {"name": name, "version": version, "commit": f"Publish {name} v{version} (#{issue['number']})",
             "message": f"Published **{name}** version {version}. P6 MCP users see it on the Skill shop page in a "
                        f"few minutes (`skills/{name}`)."}
+
+
+def write_builtins(root: str = ROOT, now: str | None = None) -> dict:
+    """skills/<name>/ of every built-in skill of the P6 MCP on PYTHONPATH (flag builtin: P6 MCP lists it and
+    never installs it), a new version when its definition changed; built-in folders that release no longer
+    has are removed. Returns {written, removed}; index.json is rebuilt when anything changed."""
+    now = now or datetime.datetime.now(datetime.timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+    written, removed = [], []
+    for skill in skills.BUILTIN:
+        meta = shop.builtin_meta(skill)
+        old = _read_meta(root, skill.name)
+        if old is not None and not old.get("builtin"):
+            raise Refused(f"skills/{skill.name} holds a shared skill, not the built-in one")
+        if old is not None and {k: old.get(k) for k in meta} == meta:
+            continue
+        meta.update(version=int(old.get("version") or 1) + 1 if old else 1, author=MAINTAINER,
+                    license=shop.LICENSE, published_at=now)
+        write_skill(root, meta)
+        written.append(skill.name)
+    base = os.path.join(root, "skills")
+    for name in sorted(os.listdir(base)) if os.path.isdir(base) else []:
+        old = _read_meta(root, name) if os.path.isfile(_meta_path(root, name)) else None
+        if old is not None and old.get("builtin") and name not in skills.BY_NAME:
+            shutil.rmtree(os.path.join(base, name))
+            removed.append(name)
+    if written or removed:
+        write_index(root, now)
+    return {"written": written, "removed": removed}
 
 
 def build_index(root: str = ROOT, now: str | None = None) -> dict:
@@ -131,7 +170,8 @@ def write_index(root: str = ROOT, now: str | None = None) -> None:
 
 
 def check(root: str = ROOT) -> list[str]:
-    """Problems of the catalog: invalid skills, a folder name that differs from its skill, a stale index."""
+    """Problems of the catalog: invalid skills, built-in skills that differ from the P6 MCP release, a folder
+    name that differs from its skill, a stale index."""
     errs = []
     base = os.path.join(root, "skills")
     for name in sorted(os.listdir(base)) if os.path.isdir(base) else []:
@@ -141,7 +181,10 @@ def check(root: str = ROOT) -> list[str]:
             continue
         with open(path, encoding="utf-8") as fh:
             meta = json.load(fh)
-        errs += [f"skills/{name}: {e}" for e in shop.check_shared(meta)]
+        if meta.get("builtin"):
+            errs += [f"skills/{name}: {e} (run python tools/catalog.py builtins)" for e in shop.check_builtin(meta)]
+        else:
+            errs += [f"skills/{name}: {e}" for e in shop.check_shared(meta)]
         if meta.get("name") != name:
             errs.append(f"skills/{name}: holds the skill {meta.get('name')!r}")
     try:
@@ -161,10 +204,15 @@ def main(argv=None) -> int:
     p.add_argument("--event", required=True)
     p.add_argument("--out", required=True)
     sub.add_parser("index")
+    sub.add_parser("builtins")
     sub.add_parser("check")
     a = ap.parse_args(argv)
     if a.cmd == "index":
         write_index()
+        return 0
+    if a.cmd == "builtins":
+        res = write_builtins()
+        print(f"written: {', '.join(res['written']) or 'none'}; removed: {', '.join(res['removed']) or 'none'}")
         return 0
     if a.cmd == "check":
         errs = check()

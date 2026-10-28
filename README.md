@@ -35,6 +35,12 @@ No GitHub account? Export the skill to a zip file in P6 MCP and send it to a col
   and the label **needs-changes**.
 - A name belongs to its first author: another account must choose another name. Approving the same content
   again publishes nothing (no new version).
+- The built-in skills of P6 MCP are listed too (`"builtin": true` in p6mcp.json and index.json): P6 MCP
+  1.8.2 and later show them as **Built-in** (nothing to install, the Skills page turns them on or off),
+  1.8.0 and 1.8.1 as needing a newer P6 MCP. Their names are reserved. They are written by
+  `python tools/catalog.py builtins` from the P6 MCP release `P6MCP_REF` (a changed text is a new version,
+  a built-in skill the release no longer has is removed), and the check fails when they differ from it: run
+  it after every bump of `P6MCP_REF`.
 
 ## Maintainer review checklist
 

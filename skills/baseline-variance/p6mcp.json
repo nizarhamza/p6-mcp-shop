@@ -1,0 +1,32 @@
+{
+  "schema": 1,
+  "kind": "p6mcp-skill",
+  "builtin": true,
+  "name": "baseline-variance",
+  "title": "Baseline variance",
+  "description": "Variance of a project against its baseline (or another project): finish variance, slipped activities, link changes and SPI. Use when the user asks to compare a project with its baseline or with another version.",
+  "args": [
+    {
+      "name": "project",
+      "description": "Project ID as shown in P6",
+      "default": null
+    },
+    {
+      "name": "baseline",
+      "description": "Project ID of the baseline (empty = the project baseline)",
+      "default": ""
+    }
+  ],
+  "template": "Variance of project {project} against the baseline \"{baseline}\" (when it is empty, use the project\nbaseline: leave other= and baseline= out of the calls below).\n\nSteps:\n1. p6_compare_projects(project=\"{project}\", other=\"{baseline}\", section=\"activities\",\n   min_variance_days=1): the summary (finish variance, activities added, removed, later and earlier)\n   and the most slipped activities first.\n2. p6_compare_projects(project=\"{project}\", other=\"{baseline}\", section=\"relationships\"): logic added,\n   removed and lags changed.\n3. p6_progress_curve(project=\"{project}\", baseline=\"{baseline}\"): planned against actual and earned at\n   the data date (to_date: spi, variance).\n\nReport: project finish against the baseline (calendar days); the slipped activities grouped by cause\nwhen visible (late start, longer duration, logic change); added and removed scope and logic; SPI and\nplanned against earned at the data date; a short conclusion on the recovery needed. If there is no\nbaseline, say so and stop.\n\n{rules}",
+  "files": [],
+  "tools": [
+    "p6_compare_projects",
+    "p6_progress_curve"
+  ],
+  "writes": false,
+  "min_app_version": "1.8.2",
+  "version": 1,
+  "author": "nizarhamza",
+  "license": "Apache-2.0",
+  "published_at": "2026-10-28T10:28:14Z"
+}

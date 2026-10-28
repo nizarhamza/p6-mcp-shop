@@ -1,0 +1,57 @@
+{
+  "schema": 1,
+  "kind": "p6mcp-skill",
+  "builtin": true,
+  "name": "export-dashboard",
+  "title": "Excel dashboard",
+  "description": "Excel project controls dashboard of a project (one A3 page and detail sheets), then a short summary of its figures (the database is never written). Use when the user asks for an Excel dashboard or a one-page project report.",
+  "args": [
+    {
+      "name": "project",
+      "description": "Project ID as shown in P6",
+      "default": null
+    },
+    {
+      "name": "path",
+      "description": "Full path of the .xlsx file to write",
+      "default": null
+    },
+    {
+      "name": "baseline",
+      "description": "Project ID of the baseline (empty = the project baseline)",
+      "default": ""
+    },
+    {
+      "name": "prepared_by",
+      "description": "Name printed under the title",
+      "default": ""
+    },
+    {
+      "name": "revision",
+      "description": "Revision printed under the title",
+      "default": ""
+    },
+    {
+      "name": "company",
+      "description": "Company name in the sidebar",
+      "default": ""
+    },
+    {
+      "name": "colors",
+      "description": "Colors 'primary,accent' in hex, for example 1F3864,C00000",
+      "default": ""
+    }
+  ],
+  "template": "Excel dashboard of project {project}, written to {path}.\n\nOptional values: baseline \"{baseline}\" (empty = the project baseline), prepared_by \"{prepared_by}\",\nrevision \"{revision}\", company \"{company}\", colors \"{colors}\". Leave every empty one out of the calls\nbelow.\n\nSteps:\n1. p6_project_summary(project=\"{project}\", baseline=\"{baseline}\"): data date, last schedule run,\n   baseline and schedule_state. If the schedule is stale or was edited since the last schedule, say so\n   and ask the user whether to export anyway or to press F9 in P6 first; wait for the answer. Without a\n   baseline, say that the delayed count, the variance cards and the baseline bars will stay empty.\n2. p6_export_dashboard(project=\"{project}\", path=\"{path}\", baseline=\"{baseline}\",\n   prepared_by=\"{prepared_by}\", revision=\"{revision}\", company=\"{company}\", colors=\"{colors}\"): writes\n   the workbook (the database is never written). If a file already exists at that path the call is\n   refused: ask the user whether to replace it, and only on a yes repeat it with overwrite=true. If the\n   file is open in Excel, ask the user to close it, then run this step again.\n3. Read the result: path, sheets (rows per sheet), counts, cards, dcma_failed, warnings.\n\nReport: the file path; the 7 cards with their value and detail, as written on the Dashboard; the\nnumbers of activities, WBS nodes, milestones and critical activities; the DCMA checks that fail (or\nthat all pass); every warning. End with how to use the file: the Dashboard prints on one A3 landscape\npage and is protected without a password; the Schedule Overview opens folded to WBS level 2 (outline\nbuttons unfold it); the Critical Path sheet lists the P6 float paths of the last F9 (when P6 stored\nnone, the near critical activities grouped by total float).\n\n{rules}",
+  "files": [],
+  "tools": [
+    "p6_export_dashboard",
+    "p6_project_summary"
+  ],
+  "writes": false,
+  "min_app_version": "1.8.2",
+  "version": 1,
+  "author": "nizarhamza",
+  "license": "Apache-2.0",
+  "published_at": "2026-10-28T10:28:14Z"
+}

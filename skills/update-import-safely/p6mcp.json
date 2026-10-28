@@ -1,0 +1,32 @@
+{
+  "schema": 1,
+  "kind": "p6mcp-skill",
+  "builtin": true,
+  "name": "update-import-safely",
+  "title": "Update import (safe)",
+  "description": "Import an updated XER into an existing project safely: inspect, dry run, review, then apply only on the user's yes. Use when the user wants to import or load an XER update into a project.",
+  "args": [
+    {
+      "name": "xer_path",
+      "description": "Full path of the XER file",
+      "default": null
+    },
+    {
+      "name": "project",
+      "description": "Project ID as shown in P6",
+      "default": null
+    }
+  ],
+  "template": "Update project {project} from the XER file {xer_path}, safely.\n\nSteps:\n1. p6_inspect_xer(path=\"{xer_path}\"): projects in the file, data date, pre-flight errors and warnings.\n   If there are pre-flight errors, stop and report them: the import would be refused.\n2. p6_import_xer(path=\"{xer_path}\", mode=\"update\", project=\"{project}\", dry_run=true): the dry run.\n3. Review it: data_date (database against XER, older), would_refuse and refuse_reasons, counts per\n   table, missing_from_xer (activities, links and assignments of the project that the XER does not\n   contain) and the warnings.\n4. Show the user a short summary of what the import would change and ask two questions: apply it (yes\n   or no), and whether missing links or assignments must be removed (remove_missing).\n5. Only after an explicit yes: call p6_import_xer again with the same arguments, dry_run=false and the\n   confirmation_token of the dry run (and remove_missing if the user asked). Report the backup taken\n   and stale_projects.\n6. Ask the user to open P6 and press F9, then suggest the weekly update review.\n\n{rules}",
+  "files": [],
+  "tools": [
+    "p6_import_xer",
+    "p6_inspect_xer"
+  ],
+  "writes": true,
+  "min_app_version": "1.8.2",
+  "version": 1,
+  "author": "nizarhamza",
+  "license": "Apache-2.0",
+  "published_at": "2026-10-28T10:28:14Z"
+}

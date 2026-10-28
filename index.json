@@ -1,7 +1,66 @@
 {
   "schema": 1,
-  "generated_at": "2026-10-28T10:00:28Z",
+  "generated_at": "2026-10-28T10:29:02Z",
   "skills": [
+    {
+      "schema": 1,
+      "kind": "p6mcp-skill",
+      "builtin": true,
+      "name": "baseline-variance",
+      "title": "Baseline variance",
+      "description": "Variance of a project against its baseline (or another project): finish variance, slipped activities, link changes and SPI. Use when the user asks to compare a project with its baseline or with another version.",
+      "tools": [
+        "p6_compare_projects",
+        "p6_progress_curve"
+      ],
+      "writes": false,
+      "min_app_version": "1.8.2",
+      "version": 1,
+      "author": "nizarhamza",
+      "license": "Apache-2.0",
+      "published_at": "2026-10-28T10:28:14Z",
+      "sha256": "6fdad44161c3ceeb4273089ea5b256ef22832f738e80863d28f6810b659db125"
+    },
+    {
+      "schema": 1,
+      "kind": "p6mcp-skill",
+      "builtin": true,
+      "name": "delay-whatif",
+      "title": "Delay what-if",
+      "description": "What-if impact of delaying one activity: driving path, float origin and the effect on the project finish and milestones (nothing is written). Use when the user asks what happens if an activity is late or delayed.",
+      "tools": [
+        "p6_driving_path",
+        "p6_float_origin",
+        "p6_get_activity",
+        "p6_schedule_whatif"
+      ],
+      "writes": false,
+      "min_app_version": "1.8.2",
+      "version": 1,
+      "author": "nizarhamza",
+      "license": "Apache-2.0",
+      "published_at": "2026-10-28T10:28:14Z",
+      "sha256": "3cf45c3751e0ac7fb9f0201c6e8c537b8951742542b6924ad09a5d1df12c8dde"
+    },
+    {
+      "schema": 1,
+      "kind": "p6mcp-skill",
+      "builtin": true,
+      "name": "export-dashboard",
+      "title": "Excel dashboard",
+      "description": "Excel project controls dashboard of a project (one A3 page and detail sheets), then a short summary of its figures (the database is never written). Use when the user asks for an Excel dashboard or a one-page project report.",
+      "tools": [
+        "p6_export_dashboard",
+        "p6_project_summary"
+      ],
+      "writes": false,
+      "min_app_version": "1.8.2",
+      "version": 1,
+      "author": "nizarhamza",
+      "license": "Apache-2.0",
+      "published_at": "2026-10-28T10:28:14Z",
+      "sha256": "d97b971e7a76833bf7792848e7c48f8f26fd674576e12b0b1cb714af0eb34c0b"
+    },
     {
       "schema": 1,
       "kind": "p6mcp-skill",
@@ -40,6 +99,69 @@
       "issue": 1,
       "published_at": "2026-10-28T09:57:53Z",
       "sha256": "27478383290581a84b4eed4a1d161aeddb45cfd28dd9d5d25ffbeef1a94632f2"
+    },
+    {
+      "schema": 1,
+      "kind": "p6mcp-skill",
+      "builtin": true,
+      "name": "schedule-quality-audit",
+      "title": "Schedule quality audit",
+      "description": "DCMA 14 quality audit of a project with trend, dangling ends, redundant links and float profile; fixes proposed as dry runs only. Use when the user asks to audit, check or score the quality of a schedule.",
+      "tools": [
+        "p6_dangling",
+        "p6_float_analysis",
+        "p6_health_check",
+        "p6_health_check_compare",
+        "p6_redundant_links"
+      ],
+      "writes": false,
+      "min_app_version": "1.8.2",
+      "version": 1,
+      "author": "nizarhamza",
+      "license": "Apache-2.0",
+      "published_at": "2026-10-28T10:28:14Z",
+      "sha256": "e06fa55f1d2219fd259e2ef2a1f50d3db828fb844bd987de19789b9c6bd04844"
+    },
+    {
+      "schema": 1,
+      "kind": "p6mcp-skill",
+      "builtin": true,
+      "name": "update-import-safely",
+      "title": "Update import (safe)",
+      "description": "Import an updated XER into an existing project safely: inspect, dry run, review, then apply only on the user's yes. Use when the user wants to import or load an XER update into a project.",
+      "tools": [
+        "p6_import_xer",
+        "p6_inspect_xer"
+      ],
+      "writes": true,
+      "min_app_version": "1.8.2",
+      "version": 1,
+      "author": "nizarhamza",
+      "license": "Apache-2.0",
+      "published_at": "2026-10-28T10:28:14Z",
+      "sha256": "dcb5924310293485e8658f8d5a33182b2080482cf3c0d48dc054be5e2f81f5b6"
+    },
+    {
+      "schema": 1,
+      "kind": "p6mcp-skill",
+      "builtin": true,
+      "name": "weekly-update-review",
+      "title": "Weekly update review",
+      "description": "Weekly schedule update review of a project: progress, critical path, status issues, look-ahead and baseline variance. Use when the user asks for a weekly update review, a status report or how a project is progressing.",
+      "tools": [
+        "p6_compare_projects",
+        "p6_critical_path",
+        "p6_lookahead",
+        "p6_progress_check",
+        "p6_project_summary"
+      ],
+      "writes": false,
+      "min_app_version": "1.8.2",
+      "version": 1,
+      "author": "nizarhamza",
+      "license": "Apache-2.0",
+      "published_at": "2026-10-28T10:28:14Z",
+      "sha256": "5cdc2453d0583f1139798a39a291b50d8048f5beb833feffabaf20349d760f08"
     }
   ]
 }

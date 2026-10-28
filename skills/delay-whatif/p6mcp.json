@@ -1,0 +1,39 @@
+{
+  "schema": 1,
+  "kind": "p6mcp-skill",
+  "builtin": true,
+  "name": "delay-whatif",
+  "title": "Delay what-if",
+  "description": "What-if impact of delaying one activity: driving path, float origin and the effect on the project finish and milestones (nothing is written). Use when the user asks what happens if an activity is late or delayed.",
+  "args": [
+    {
+      "name": "project",
+      "description": "Project ID as shown in P6",
+      "default": null
+    },
+    {
+      "name": "task_code",
+      "description": "Activity ID",
+      "default": null
+    },
+    {
+      "name": "delay_days",
+      "description": "Extra working days",
+      "default": "10"
+    }
+  ],
+  "template": "What happens to project {project} if activity {task_code} takes {delay_days} more days?\n\nSteps:\n1. p6_get_activity(project=\"{project}\", task_code=\"{task_code}\"): remaining and original duration, total\n   float, calendar.\n2. p6_driving_path(project=\"{project}\", target=\"{task_code}\"): what drives it today.\n3. p6_float_origin(project=\"{project}\", task_code=\"{task_code}\"): where its float comes from.\n4. p6_schedule_whatif(project=\"{project}\", edits=[{{\"op\": \"duration\", \"task_code\": \"{task_code}\",\n   \"remaining_days\": <current remaining days + {delay_days}>}}]): use the remaining duration read in\n   step 1 (for a not started activity also set original_days the same way).\n\nReport: the activity today (dates, float, drivers); the project finish before and after (calendar and\nworking days); milestones and constrained activities that move or go negative; the activities that\nbecome critical; whether the engine is trusted (engine.trusted) for this project. Nothing is written to\nthe database.\n\n{rules}",
+  "files": [],
+  "tools": [
+    "p6_driving_path",
+    "p6_float_origin",
+    "p6_get_activity",
+    "p6_schedule_whatif"
+  ],
+  "writes": false,
+  "min_app_version": "1.8.2",
+  "version": 1,
+  "author": "nizarhamza",
+  "license": "Apache-2.0",
+  "published_at": "2026-10-28T10:28:14Z"
+}

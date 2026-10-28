@@ -9,7 +9,7 @@ permissions:
   contents: read
 
 env:
-  P6MCP_REF: v1.8.0  # same release as publish.yml
+  P6MCP_REF: v1.8.2  # same release as publish.yml
 
 jobs:
   check:
