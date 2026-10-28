@@ -1,7 +1,26 @@
 {
   "schema": 1,
-  "generated_at": "2026-10-28T09:57:53Z",
+  "generated_at": "2026-10-28T10:00:28Z",
   "skills": [
+    {
+      "schema": 1,
+      "kind": "p6mcp-skill",
+      "name": "list",
+      "title": "List projects by EPS",
+      "description": "List the projects of the database grouped by EPS, with status, data date and finish.",
+      "tools": [
+        "p6_list_eps",
+        "p6_sql_select"
+      ],
+      "writes": false,
+      "min_app_version": "1.8.0",
+      "version": 1,
+      "author": "nizarhamza",
+      "license": "Apache-2.0",
+      "issue": 2,
+      "published_at": "2026-10-28T10:00:28Z",
+      "sha256": "dca8272af36372da4aa224fe82ac759df307d26afc08e8303c0e63b17bb35823"
+    },
     {
       "schema": 1,
       "kind": "p6mcp-skill",
