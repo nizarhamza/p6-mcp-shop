@@ -1,0 +1,38 @@
+{
+  "schema": 1,
+  "kind": "p6mcp-skill",
+  "name": "lookahead-brief",
+  "title": "Look-ahead brief",
+  "description": "Short look-ahead of a P6 project: what starts, finishes and is in progress in the next weeks, critical work first. Use when the user asks what is coming up or for a short-term plan.",
+  "args": [
+    {
+      "name": "project",
+      "description": "Project ID as shown in P6",
+      "default": null
+    },
+    {
+      "name": "weeks",
+      "description": "Look-ahead length in weeks",
+      "default": "2"
+    }
+  ],
+  "template": "Look-ahead brief of project {project} for the next {weeks} weeks.\n\nSteps:\n1. p6_project_summary(project=\"{project}\"): data date and schedule_state.\n2. p6_lookahead(project=\"{project}\", weeks={weeks}): activities in the window.\n3. p6_critical_path(project=\"{project}\"): mark the critical ones.\n\nWrite the brief in the format of reference/format.md.",
+  "files": [
+    {
+      "path": "reference/format.md",
+      "text": "# Format\n\n- One line on the data date and any stale schedule warning.\n- Critical activities first, then the others, grouped by week.\n- Each activity as Activity ID - Activity name, start, finish, total float.\n- At most 3 actions at the end.\n"
+    }
+  ],
+  "tools": [
+    "p6_critical_path",
+    "p6_lookahead",
+    "p6_project_summary"
+  ],
+  "writes": false,
+  "min_app_version": "1.8.0",
+  "version": 1,
+  "author": "nizarhamza",
+  "license": "Apache-2.0",
+  "issue": 1,
+  "published_at": "2026-10-28T09:53:14Z"
+}

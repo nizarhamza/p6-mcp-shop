@@ -1,5 +1,26 @@
 {
   "schema": 1,
-  "generated_at": "2026-10-28T09:24:39Z",
-  "skills": []
+  "generated_at": "2026-10-28T09:53:14Z",
+  "skills": [
+    {
+      "schema": 1,
+      "kind": "p6mcp-skill",
+      "name": "lookahead-brief",
+      "title": "Look-ahead brief",
+      "description": "Short look-ahead of a P6 project: what starts, finishes and is in progress in the next weeks, critical work first. Use when the user asks what is coming up or for a short-term plan.",
+      "tools": [
+        "p6_critical_path",
+        "p6_lookahead",
+        "p6_project_summary"
+      ],
+      "writes": false,
+      "min_app_version": "1.8.0",
+      "version": 1,
+      "author": "nizarhamza",
+      "license": "Apache-2.0",
+      "issue": 1,
+      "published_at": "2026-10-28T09:53:14Z",
+      "sha256": "b3a4c69bce50e31ea602bfe7153bbc7e74dfbf2122977a4a1f13879e7333b064"
+    }
+  ]
 }
