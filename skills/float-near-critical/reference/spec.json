@@ -1,0 +1,88 @@
+{
+  "spec": 1,
+  "steps": [
+    {"id": "fa", "tool": "p6_float_analysis", "args": {"project": "{project}"},
+     "why": "float statistics and distribution of the open activities, data date"},
+    {"id": "fp", "tool": "p6_float_paths", "args": {"project": "{project}", "limit": 30},
+     "why": "float paths of the last F9: summary per path and the activities in path order"},
+    {"id": "nc", "tool": "p6_critical_path", "args": {"project": "{project}", "float_threshold_days": "{near_days}", "min_float_days": 0, "limit": 30},
+     "why": "near-critical activities: total float above 0 and at or below near_days; project counts"}
+  ],
+  "slots": {
+    "data_date": {"step": "fa", "path": "schedule_state.data_date", "format": "date", "meaning": "data date of the project"},
+    "last_f9": {"step": "fa", "path": "schedule_state.last_schedule_date", "format": "datetime", "meaning": "last schedule run (F9) in P6"},
+    "stale": {"step": "fa", "path": "schedule_state.stale", "format": "flag", "meaning": "this server changed the project after the last F9"},
+    "activities": {"step": "fa", "path": "scope.activities", "format": "int", "unit": "count", "meaning": "open activities analysed: not completed, LOE and WBS summary left out"},
+    "no_tf": {"step": "fa", "path": "no_value.total_float", "format": "int", "unit": "count", "meaning": "open activities without a total float"},
+    "tf_min": {"step": "fa", "path": "stats.tf_min_d", "format": "n1", "unit": "d", "meaning": "lowest total float"},
+    "tf_max": {"step": "fa", "path": "stats.tf_max_d", "format": "n1", "unit": "d", "meaning": "highest total float"},
+    "tf_mean": {"step": "fa", "path": "stats.tf_mean_d", "format": "n1", "unit": "d", "meaning": "mean total float"},
+    "tf_median": {"step": "fa", "path": "stats.tf_median_d", "format": "n1", "unit": "d", "meaning": "median total float"},
+    "negative": {"step": "fa", "path": "stats.negative_tf", "format": "int", "unit": "count", "meaning": "open activities with negative total float"},
+    "zero": {"step": "fa", "path": "stats.zero_tf", "format": "int", "unit": "count", "meaning": "open activities with total float exactly 0"},
+    "critical": {"step": "fa", "path": "stats.critical", "format": "int", "unit": "count", "meaning": "critical open activities under the project's definition"},
+    "critical_definition": {"step": "fa", "path": "stats.critical_definition", "format": "text", "meaning": "the project's definition of critical"},
+    "tf_not_whole": {"step": "fa", "path": "stats.tf_not_whole_days", "format": "int", "unit": "count", "meaning": "total floats that are not a whole number of days"},
+    "ranges_covered": {"step": "fa", "path": "all_ranges_covered", "format": "flag", "meaning": "range counts plus activities without float equal the activities analysed"},
+    "fp_source": {"step": "fp", "path": "source", "format": "text", "meaning": "float_path (P6 multiple float paths) or driving_path_flag (no float path stored)"},
+    "longest_path": {"step": "nc", "path": "counts.longest_path", "format": "int", "unit": "count", "meaning": "open activities on the longest path (driving path flag)"},
+    "within_near": {"step": "nc", "path": "counts.total_float", "format": "int", "unit": "count", "meaning": "open activities with total float at or below near_days, critical included"},
+    "near_total": {"step": "nc", "path": "total", "format": "int", "unit": "count", "meaning": "near-critical activities: total float above 0 and at or below near_days"},
+    "near_definition": {"step": "nc", "path": "definition", "format": "text", "meaning": "the threshold used by the near-critical table"}
+  },
+  "tables": {
+    "buckets": {
+      "step": "fa", "rows": "buckets", "cap": 12, "noun": "ranges", "empty": "No open activity.",
+      "meaning": "Float ranges in days: below the first edge, [a, b) below zero, exactly 0, (a, b] above zero, above the last edge.",
+      "columns": [
+        {"key": "range", "head": "Range (d)", "path": "label", "format": "text", "unit": "d"},
+        {"key": "tf", "head": "Total float", "path": "total_float", "format": "int", "unit": "count"},
+        {"key": "tf_pct", "head": "Total float %", "path": "tf_pct", "format": "pct1", "unit": "%"},
+        {"key": "ff", "head": "Free float", "path": "free_float", "format": "int", "unit": "count"},
+        {"key": "ff_pct", "head": "Free float %", "path": "ff_pct", "format": "pct1", "unit": "%"}
+      ]
+    },
+    "paths": {
+      "step": "fp", "rows": "paths", "cap": 10, "noun": "float paths",
+      "empty": "P6 stored no float paths for this project: the next table lists the longest path activities (driving path flag) by start.",
+      "meaning": "One row per float path (1 = the most critical), over every page.",
+      "columns": [
+        {"key": "path", "head": "Path", "path": "path", "format": "int"},
+        {"key": "activities", "head": "Activities", "path": "activities", "format": "int", "unit": "count"},
+        {"key": "min_tf", "head": "Min total float (d)", "path": "min_tf_d", "format": "n1", "unit": "d"},
+        {"key": "max_tf", "head": "Max total float (d)", "path": "max_tf_d", "format": "n1", "unit": "d"},
+        {"key": "finish", "head": "Finish", "path": "finish", "format": "date"}
+      ]
+    },
+    "path_rows": {
+      "step": "fp", "rows": "rows", "cap": 30, "noun": "float path activities", "empty": "No open activity on a float path.",
+      "meaning": "Open activities of the float paths in P6 order: path, then order on the path.",
+      "columns": [
+        {"key": "path", "head": "Path", "path": "float_path", "format": "int", "none": "none"},
+        {"key": "order", "head": "Order", "path": "float_path_order", "format": "int", "none": "none"},
+        {"key": "activity", "head": "Activity", "path": ["task_code", "task_name"], "format": "id_name"},
+        {"key": "tf", "head": "Total float (d)", "path": "total_float_d", "format": "n1", "unit": "d"},
+        {"key": "start", "head": "Early start", "path": "early_start_date", "format": "date"},
+        {"key": "finish", "head": "Early finish", "path": "early_end_date", "format": "date"}
+      ]
+    },
+    "near": {
+      "step": "nc", "rows": "rows", "cap": 30, "noun": "activities", "empty": "No open activity with total float above 0 and at or below this threshold.",
+      "meaning": "Near-critical activities: total float above 0 and at or below near_days, by total float then start.",
+      "columns": [
+        {"key": "activity", "head": "Activity", "path": ["task_code", "task_name"], "format": "id_name"},
+        {"key": "status", "head": "Status", "path": "status_code", "format": "text"},
+        {"key": "tf", "head": "Total float (d)", "path": "total_float_d", "format": "n1", "unit": "d"},
+        {"key": "ff", "head": "Free float (d)", "path": "free_float_d", "format": "n1", "unit": "d"},
+        {"key": "rem", "head": "Remaining duration (d)", "path": "rem_dur_d", "format": "n1", "unit": "d"},
+        {"key": "finish", "head": "Early finish", "path": "early_end_date", "format": "date"},
+        {"key": "path", "head": "Float path", "path": "float_path", "format": "int", "none": "none"}
+      ]
+    }
+  },
+  "checks": [
+    {"equal": ["fa.schedule_state.data_date", "fp.schedule_state.data_date", "nc.schedule_state.data_date"], "text": "same data date in the three calls"},
+    {"equal": ["fa.scope.activities", "nc.counts.open"], "text": "same number of open activities"},
+    {"equal": ["fa.stats.negative_tf", "nc.counts.negative_float"], "text": "same negative float count"}
+  ]
+}

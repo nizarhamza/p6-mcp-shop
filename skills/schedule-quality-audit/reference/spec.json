@@ -1,0 +1,97 @@
+{
+  "spec": 1,
+  "steps": [
+    {"id": "hc", "tool": "p6_health_check", "args": {"project": "{project}"},
+     "why": "full DCMA 14 run: checks, score, thresholds, baseline (saves a snapshot)"},
+    {"id": "tr", "tool": "p6_health_check_compare", "args": {"project": "{project}", "before": "previous", "after": "latest"}, "optional": true,
+     "why": "trend since the previous audit (fails when there is none)"},
+    {"id": "dg", "tool": "p6_dangling", "args": {"project": "{project}", "limit": 15},
+     "why": "open starts and open finishes with a suggested link"},
+    {"id": "rd", "tool": "p6_redundant_links", "args": {"project": "{project}", "limit": 15},
+     "why": "links that are candidates for removal"},
+    {"id": "fa", "tool": "p6_float_analysis", "args": {"project": "{project}"},
+     "why": "total and free float distribution of the open activities"}
+  ],
+  "slots": {
+    "data_date": {"step": "hc", "path": "schedule_state.data_date", "format": "date", "meaning": "data date"},
+    "last_f9": {"step": "hc", "path": "schedule_state.last_schedule_date", "format": "datetime", "meaning": "last schedule run (F9) in P6"},
+    "stale": {"step": "hc", "path": "schedule_state.stale", "format": "flag", "meaning": "changed by this server after the last F9"},
+    "score_passed": {"step": "hc", "path": "score.passed", "format": "int", "unit": "count", "meaning": "checks passed"},
+    "score_failed": {"step": "hc", "path": "score.failed", "format": "int", "unit": "count", "meaning": "checks failed"},
+    "score_not_evaluated": {"step": "hc", "path": "score.not_evaluated", "format": "int", "unit": "count", "meaning": "checks not evaluated (no threshold or no data)"},
+    "score_evaluated": {"step": "hc", "path": "score.evaluated", "format": "int", "unit": "count", "meaning": "checks passed or failed"},
+    "score_pct": {"step": "hc", "path": "score.pct_passed", "format": "pct1", "unit": "%", "meaning": "passed / evaluated checks"},
+    "threshold_source": {"step": "hc", "path": "threshold_source", "format": "text", "meaning": "PROJPROP schedule_check or DCMA defaults"},
+    "baseline": {"step": "hc", "path": "baseline.project", "format": "text", "meaning": "baseline of missed tasks and BEI"},
+    "open_activities": {"step": "hc", "path": "open_incomplete_activities", "format": "int", "unit": "count", "meaning": "open activities: not completed, LOE and WBS summary left out"},
+    "cpt_activity": {"step": "hc", "path": ["checks.critical_path_test.activity", "checks.critical_path_test.activity_name"], "format": "id_name", "meaning": "activity delayed by the critical path test"},
+    "lags": {"step": "hc", "path": "checks.lags.count", "format": "int", "unit": "count", "meaning": "links (open successor) with a positive lag"},
+    "high_float": {"step": "hc", "path": "checks.high_float.count", "format": "int", "unit": "count", "meaning": "open activities above the high float limit"},
+    "missed": {"step": "hc", "path": "checks.missed_tasks.count", "format": "int", "unit": "count", "meaning": "baseline activities due that are missed"},
+    "trend_error": {"step": "tr", "path": "error", "format": "text", "meaning": "why there is no trend (null when there is one)"},
+    "dangling": {"step": "dg", "path": "total", "format": "int", "unit": "count", "meaning": "open starts plus open finishes (an activity with both counts twice)"},
+    "redundant": {"step": "rd", "path": "total", "format": "int", "unit": "count", "meaning": "links that are candidates for removal"},
+    "red_side_effects": {"step": "rd", "path": "side_effects.count", "format": "int", "unit": "count", "meaning": "open activities left without predecessor or successor if all were removed"},
+    "tf_min": {"step": "fa", "path": "stats.tf_min_d", "format": "n1", "unit": "d", "meaning": "lowest total float"},
+    "tf_max": {"step": "fa", "path": "stats.tf_max_d", "format": "n1", "unit": "d", "meaning": "highest total float"},
+    "tf_negative": {"step": "fa", "path": "stats.negative_tf", "format": "int", "unit": "count", "meaning": "open activities with negative total float"},
+    "critical": {"step": "fa", "path": "stats.critical", "format": "int", "unit": "count", "meaning": "critical open activities"},
+    "critical_definition": {"step": "fa", "path": "stats.critical_definition", "format": "text", "meaning": "the project's definition of critical"}
+  },
+  "tables": {
+    "dcma": {"step": "hc", "rows": "checks", "cap": 16, "noun": "checks", "empty": "No check returned.",
+      "meaning": "One row per check, in the order returned (DCMA 14, then key_dates, information only); Value for cpli and bei.",
+      "columns": [
+        {"key": "check", "head": "Check", "path": "_key", "format": "text"},
+        {"key": "count", "head": "Count", "path": "count", "format": "int", "unit": "count"},
+        {"key": "denominator", "head": "Out of", "path": "denominator", "format": "int", "unit": "count"},
+        {"key": "pct", "head": "%", "path": "pct", "format": "pct1", "unit": "%"},
+        {"key": "value", "head": "Value", "path": "value", "format": "n2"},
+        {"key": "threshold", "head": "Threshold", "path": "threshold", "format": "n2", "none": "none"},
+        {"key": "pass", "head": "Pass", "path": "pass", "format": "flag", "none": "not evaluated"}
+      ]},
+    "trend": {"step": "tr", "rows": "checks", "cap": 16, "noun": "checks", "empty": "No check to compare.",
+      "meaning": "One row per check: count at the previous audit and now, change, pass now.",
+      "columns": [
+        {"key": "check", "head": "Check", "path": "_key", "format": "text"},
+        {"key": "before", "head": "Count before", "path": "count.before", "format": "int", "unit": "count"},
+        {"key": "after", "head": "Count now", "path": "count.after", "format": "int", "unit": "count"},
+        {"key": "delta", "head": "Change", "path": "count.delta", "format": "int", "unit": "count"},
+        {"key": "pass", "head": "Pass now", "path": "pass.after", "format": "flag", "none": "not evaluated"}
+      ]},
+    "dangling": {"step": "dg", "rows": "rows", "cap": 15, "noun": "dangling ends", "empty": "No dangling start or finish.",
+      "meaning": "Open starts first, then open finishes, by Activity ID.",
+      "columns": [
+        {"key": "kind", "head": "Open", "path": "kind", "format": "text"},
+        {"key": "activity", "head": "Activity", "path": ["task_code", "task_name"], "format": "id_name"},
+        {"key": "tf", "head": "Total float (d)", "path": "total_float_d", "format": "n1", "unit": "d"},
+        {"key": "reason", "head": "Suggested link", "path": "suggestion.reason", "format": "text"}
+      ]},
+    "redundant": {"step": "rd", "rows": "rows", "cap": 15, "noun": "candidate links", "empty": "No redundant link.",
+      "meaning": "By first category, then successor and predecessor ID; every category of the link.",
+      "columns": [
+        {"key": "pred", "head": "Predecessor", "path": ["predecessor", "predecessor_name"], "format": "id_name"},
+        {"key": "succ", "head": "Successor", "path": ["successor", "successor_name"], "format": "id_name"},
+        {"key": "type", "head": "Type", "path": "type", "format": "text"},
+        {"key": "lag", "head": "Lag (d)", "path": "lag_d", "format": "n1", "unit": "d"},
+        {"key": "categories", "head": "Categories", "path": "categories", "format": "list"},
+        {"key": "drives", "head": "Drives", "path": "drives", "format": "flag"}
+      ]},
+    "float": {"step": "fa", "rows": "buckets", "cap": 10, "noun": "float ranges", "empty": "No open activity.",
+      "meaning": "Total and free float of the open activities per range of days.",
+      "columns": [
+        {"key": "range", "head": "Range (d)", "path": "label", "format": "text", "unit": "d"},
+        {"key": "tf", "head": "Total float", "path": "total_float", "format": "int", "unit": "count"},
+        {"key": "tf_pct", "head": "Total float %", "path": "tf_pct", "format": "pct1", "unit": "%"},
+        {"key": "ff", "head": "Free float", "path": "free_float", "format": "int", "unit": "count"},
+        {"key": "ff_pct", "head": "Free float %", "path": "ff_pct", "format": "pct1", "unit": "%"}
+      ]}
+  },
+  "checks": [
+    {"equal": ["hc.schedule_state.data_date", "dg.schedule_state.data_date", "rd.schedule_state.data_date", "fa.schedule_state.data_date"], "text": "same data date in every call"},
+    {"equal": ["hc.open_incomplete_activities", "fa.scope.activities"], "text": "same open activities"},
+    {"equal": ["hc.checks.negative_float.count", "fa.stats.negative_tf"], "text": "same negative float count"},
+    {"equal": ["hc.checks.logic.dangling.open_start.count", "dg.counts.start"], "text": "same open starts"},
+    {"equal": ["hc.checks.logic.dangling.open_finish.count", "dg.counts.finish"], "text": "same open finishes"}
+  ]
+}

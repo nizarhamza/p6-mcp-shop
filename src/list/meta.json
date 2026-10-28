@@ -1,0 +1,10 @@
+{
+  "name": "list",
+  "title": "List projects by EPS",
+  "description": "List the projects of the database grouped by EPS, with status, data date and finish (template projects and baselines left out). Use when the user asks which projects the database holds or what an EPS contains.",
+  "args": [
+    {"name": "eps", "description": "EPS ID whose projects to list, with the EPS below it (empty = every EPS)", "default": ""}
+  ],
+  "min_app_version": "1.9.0",
+  "example_args": {}
+}

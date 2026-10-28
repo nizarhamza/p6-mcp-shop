@@ -1,0 +1,104 @@
+{
+  "spec": 1,
+  "steps": [
+    {"id": "sum", "tool": "p6_project_summary", "args": {"project": "{project}", "baseline": "{baseline}"},
+     "why": "dates, baseline used, finish variance"},
+    {"id": "act", "tool": "p6_compare_projects", "args": {"project": "{project}", "other": "{baseline}", "section": "activities", "min_variance_days": 1, "limit": 20},
+     "why": "activity summary, slip causes, largest finish variances", "optional": true},
+    {"id": "rel", "tool": "p6_compare_projects", "args": {"project": "{project}", "other": "{baseline}", "section": "relationships", "limit": 20},
+     "why": "relationships added, removed or with another lag", "optional": true},
+    {"id": "pc", "tool": "p6_progress_curve", "args": {"project": "{project}", "baseline": "{baseline}"},
+     "why": "earned value in units at the data date", "optional": true}
+  ],
+  "slots": {
+    "data_date": {"step": "sum", "path": "schedule_state.data_date", "format": "date", "meaning": "data date"},
+    "last_f9": {"step": "sum", "path": "schedule_state.last_schedule_date", "format": "datetime", "meaning": "last F9 in P6"},
+    "stale": {"step": "sum", "path": "schedule_state.stale", "format": "flag", "meaning": "changed by this server after the last F9"},
+    "bl_used": {"step": "sum", "path": "baseline.used", "format": "text", "meaning": "baseline compared with (null: none)"},
+    "bl_source": {"step": "sum", "path": "baseline.source", "format": "text", "meaning": "how the baseline was chosen"},
+    "bl_data_date": {"step": "sum", "path": "baseline.data_date", "format": "date", "meaning": "data date of the baseline"},
+    "finish": {"step": "sum", "path": "dates.scheduled_finish", "format": "date", "meaning": "scheduled finish"},
+    "bl_finish": {"step": "sum", "path": "baseline.finish", "format": "date", "meaning": "scheduled finish of the baseline"},
+    "fv_cd": {"step": "sum", "path": "baseline.finish_variance_cd", "format": "n1", "unit": "cd", "meaning": "finish minus baseline finish"},
+    "fv_wd": {"step": "sum", "path": "baseline.finish_variance_wd", "format": "n1", "unit": "wd proj", "meaning": "finish minus baseline finish"},
+    "must_finish": {"step": "sum", "path": "dates.must_finish_by", "format": "date", "meaning": "must finish by date"},
+    "mf_cd": {"step": "sum", "path": "dates.finish_vs_must_finish_by_cd", "format": "n1", "unit": "cd", "meaning": "finish minus must finish by"},
+    "mf_wd": {"step": "sum", "path": "dates.finish_vs_must_finish_by_wd", "format": "n1", "unit": "wd proj", "meaning": "finish minus must finish by"},
+    "matched": {"step": "act", "path": "summary.activities.matched", "format": "int", "unit": "count", "meaning": "activities in both (Activity ID)"},
+    "added": {"step": "act", "path": "summary.activities.added", "format": "int", "unit": "count", "meaning": "only in the project"},
+    "removed": {"step": "act", "path": "summary.activities.removed", "format": "int", "unit": "count", "meaning": "only in the baseline"},
+    "later": {"step": "act", "path": "summary.activities.later", "format": "int", "unit": "count", "meaning": "matched, finishing later"},
+    "earlier": {"step": "act", "path": "summary.activities.earlier", "format": "int", "unit": "count", "meaning": "matched, finishing earlier"},
+    "same_finish": {"step": "act", "path": "summary.activities.same_finish", "format": "int", "unit": "count", "meaning": "matched, same finish"},
+    "later_avg_cd": {"step": "act", "path": "summary.activities.later_avg_cd", "format": "n1", "unit": "cd", "meaning": "average variance of the later ones"},
+    "later_max_cd": {"step": "act", "path": "summary.activities.later_max_cd", "format": "n1", "unit": "cd", "meaning": "largest finish variance"},
+    "earlier_max_cd": {"step": "act", "path": "summary.activities.earlier_max_cd", "format": "n1", "unit": "cd", "meaning": "most negative finish variance"},
+    "status_changed": {"step": "act", "path": "summary.activities.status_changed", "format": "int", "unit": "count", "meaning": "matched, other status"},
+    "dur_changed": {"step": "act", "path": "summary.activities.orig_dur_changed", "format": "int", "unit": "count", "meaning": "matched, other original duration"},
+    "name_changed": {"step": "act", "path": "summary.activities.name_changed", "format": "int", "unit": "count", "meaning": "matched, other name"},
+    "slip_unknown": {"step": "act", "path": "summary.activities.slip_cause_unknown", "format": "int", "unit": "count", "meaning": "matched, no slip cause (calendar or date missing)"},
+    "rel_matched": {"step": "rel", "path": "summary.relationships.matched", "format": "int", "unit": "count", "meaning": "relationships in both"},
+    "rel_added": {"step": "rel", "path": "summary.relationships.added", "format": "int", "unit": "count", "meaning": "only in the project"},
+    "rel_removed": {"step": "rel", "path": "summary.relationships.removed", "format": "int", "unit": "count", "meaning": "only in the baseline"},
+    "rel_lag_changed": {"step": "rel", "path": "summary.relationships.lag_changed", "format": "int", "unit": "count", "meaning": "in both, other lag"},
+    "bl_planned": {"step": "pc", "path": "to_date.baseline_planned", "format": "n1", "unit": "h", "meaning": "baseline planned units (planned value)"},
+    "earned": {"step": "pc", "path": "to_date.earned", "format": "n1", "unit": "h", "meaning": "budget x activity % complete"},
+    "actual": {"step": "pc", "path": "to_date.actual", "format": "n1", "unit": "h", "meaning": "actual units"},
+    "ev_variance": {"step": "pc", "path": "to_date.variance", "format": "n1", "unit": "h", "meaning": "earned minus baseline planned"},
+    "spi": {"step": "pc", "path": "to_date.spi", "format": "n2", "meaning": "earned / baseline planned"},
+    "spi_actual": {"step": "pc", "path": "to_date.spi_actual", "format": "n2", "meaning": "actual / baseline planned"},
+    "act_error": {"step": "act", "path": "error", "format": "text", "meaning": "error of act (null: it worked)"},
+    "rel_error": {"step": "rel", "path": "error", "format": "text", "meaning": "error of rel (null: it worked)"},
+    "pc_error": {"step": "pc", "path": "error", "format": "text", "meaning": "error of pc (null: it worked)"}
+  },
+  "tables": {
+    "causes": {
+      "step": "act", "rows": "summary.activities.slip_causes", "cap": 10, "noun": "causes", "empty": "No matched activity.",
+      "meaning": "Matched activities per slip cause.",
+      "columns": [
+        {"key": "cause", "head": "Slip cause", "path": "_key", "format": "text"},
+        {"key": "activities", "head": "Activities", "path": "_value", "format": "int", "unit": "count"}
+      ]
+    },
+    "moved": {
+      "step": "act", "rows": "rows", "cap": 20, "noun": "activities", "empty": "No activity moved by 1 calendar day or more.",
+      "meaning": "Added and removed first, then matched ones moved by 1 cd or more, largest absolute variance first.",
+      "columns": [
+        {"key": "activity", "head": "Activity", "path": ["task_code", "name"], "format": "id_name"},
+        {"key": "change", "head": "Change", "path": "change", "format": "text"},
+        {"key": "status", "head": "Status", "path": "status", "format": "text"},
+        {"key": "bl_start", "head": "BL start", "path": "other_start", "format": "date"},
+        {"key": "start", "head": "Start", "path": "start", "format": "date"},
+        {"key": "start_var", "head": "Start var (wd)", "path": "start_variance_wd", "format": "n1", "unit": "wd"},
+        {"key": "bl_finish", "head": "BL finish", "path": "other_finish", "format": "date"},
+        {"key": "finish", "head": "Finish", "path": "finish", "format": "date"},
+        {"key": "var_cd", "head": "Finish var (cd)", "path": "variance_cd", "format": "n1", "unit": "cd"},
+        {"key": "var_wd", "head": "Finish var (wd)", "path": "variance_wd", "format": "n1", "unit": "wd"},
+        {"key": "dur", "head": "Duration delta (wd)", "path": "duration_delta_wd", "format": "n1", "unit": "wd"},
+        {"key": "cause", "head": "Slip cause", "path": "slip_cause", "format": "text"},
+        {"key": "tf", "head": "Total float (d)", "path": "total_float_d", "format": "n1", "unit": "d"}
+      ]
+    },
+    "links": {
+      "step": "rel", "rows": "rows", "cap": 20, "noun": "relationship changes", "empty": "No relationship added, removed or with another lag.",
+      "meaning": "Added, lag_changed, then removed; by successor, predecessor, type.",
+      "columns": [
+        {"key": "change", "head": "Change", "path": "change", "format": "text"},
+        {"key": "pred", "head": "Predecessor", "path": ["pred_code", "pred_name"], "format": "id_name"},
+        {"key": "succ", "head": "Successor", "path": ["succ_code", "succ_name"], "format": "id_name"},
+        {"key": "type", "head": "Type", "path": "type", "format": "text"},
+        {"key": "pred_project", "head": "Predecessor project", "path": "pred_project", "format": "text", "none": "same"},
+        {"key": "lag", "head": "Lag (d)", "path": "lag_d", "format": "n1", "unit": "d"},
+        {"key": "bl_lag", "head": "BL lag (d)", "path": "other_lag_d", "format": "n1", "unit": "d"}
+      ]
+    }
+  },
+  "checks": [
+    {"equal": ["sum.schedule_state.data_date", "act.schedule_state.data_date", "rel.schedule_state.data_date", "pc.schedule_state.data_date"], "text": "same data date"},
+    {"equal": ["sum.baseline.used", "act.other", "rel.other", "pc.baseline.project"], "text": "same baseline"},
+    {"equal": ["sum.dates.scheduled_finish", "act.projects.scd_end_date.project"], "text": "same project finish"},
+    {"equal": ["sum.baseline.finish", "act.projects.scd_end_date.other"], "text": "same baseline finish"},
+    {"equal": ["sum.baseline.spi_units", "pc.to_date.spi"], "text": "same SPI"},
+    {"equal": ["act.summary.relationships.matched", "rel.summary.relationships.matched"], "text": "same relationships matched"}
+  ]
+}

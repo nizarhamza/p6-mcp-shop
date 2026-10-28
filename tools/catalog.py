@@ -1,14 +1,20 @@
-"""P6 MCP skill shop catalog: publish an approved issue, rebuild index.json, check the whole catalog.
+"""P6 MCP skill shop catalog: build the core skills from src/, publish an approved issue, rebuild
+index.json, check the whole catalog.
 
-The rules are P6 MCP's own: p6mcp.shop.check_shared, imported from a checkout of nizarhamza/p6-mcp at the
-tag pinned in the workflows (P6MCP_REF, put on PYTHONPATH). Standard library only.
+The rules are P6 MCP's own: p6mcp.shop.check_shared and p6mcp.skills.check_skill, imported from a checkout
+of nizarhamza/p6-mcp at the tag pinned in the workflows (P6MCP_REF, put on PYTHONPATH). Standard library
+only, except build: it renders each example report through the golden harness (tools/golden.py), which
+runs P6 MCP's tools on the demo database of that checkout's test fixtures.
 
+    python tools/catalog.py build      # skills/<name>/ of every src/<name>/ (core skills), index.json
     python tools/catalog.py publish --event "$GITHUB_EVENT_PATH" --out result.json
     python tools/catalog.py index      # rebuild index.json (after removing a skill by hand)
-    python tools/catalog.py builtins   # write the built-in skills of that P6 MCP (after bumping P6MCP_REF)
     python tools/catalog.py check      # every skill valid and index.json up to date (exit 1 otherwise)
 
-The issue body is untrusted text: it is only parsed as JSON and checked, never run or passed to a shell.
+Core skills (src/<name>/, listed in core.json for the app's first install) are written by the maintainer
+and built here; shared skills come from approved issues. The issue body is untrusted text: it is only
+parsed as JSON and checked, never run or passed to a shell. There are no built-in skills any more (P6 MCP
+1.9.0): build removes the built-in entries older catalogs listed.
 """
 
 from __future__ import annotations
@@ -26,7 +32,11 @@ from p6mcp import shop, skills
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SECTION = "Skill"  # label of the issue form's JSON field (id: skill)
-MAINTAINER = shop.REPO.split("/")[0]  # author of the built-in skills
+MAINTAINER = shop.REPO.split("/")[0]  # author of the core skills
+SRC = "src"  # core skill sources: src/<name>/ (see docs/AUTHORING.md)
+CORE = "core.json"  # names of the core skills (installed by P6 MCP on first start)
+REF_FILES = ("reference/report.md", "reference/checks.md", "reference/spec.json", "reference/fields.md",
+             "reference/example.md")
 
 
 class Refused(ValueError):
@@ -72,13 +82,13 @@ def _read_meta(root: str, name: str):
 
 
 def write_skill(root: str, meta: dict) -> None:
-    """skills/<name>/: p6mcp.json (what P6 MCP installs) plus SKILL.md and the reference files to browse
-    (a built-in skill: SKILL.md as P6 MCP writes it for the clients). The folder is rewritten: files of an
-    earlier version that are gone are removed."""
+    """skills/<name>/: p6mcp.json (what P6 MCP installs) plus SKILL.md (as P6 MCP writes it for the clients)
+    and the reference files to browse. The folder is rewritten: files of an earlier version that are gone
+    are removed."""
     folder = os.path.join(root, "skills", meta["name"])
     if os.path.isdir(folder):
         shutil.rmtree(folder)
-    skill = skills.BY_NAME[meta["name"]] if meta.get("builtin") else skills.from_config(shop.to_stored(meta))
+    skill = skills.from_config(shop.to_stored(meta))
     for rel, text in skills.skill_files(skill).items():
         _write(os.path.join(folder, *rel.split("/")), text)
     _write(os.path.join(folder, shop.META), json.dumps(meta, indent=2, ensure_ascii=False) + "\n")
@@ -97,6 +107,8 @@ def publish(event: dict, root: str = ROOT, now: str | None = None) -> dict:
         raise Refused("; ".join(errs))
     name = item["name"]
     version = 1
+    if os.path.isdir(os.path.join(root, SRC, name)):
+        raise Refused(f"the name {name!r} is a core skill of the catalog: rename the skill and share it again")
     old = _read_meta(root, name)
     if old is not None:
         if old.get("builtin"):
@@ -120,36 +132,111 @@ def publish(event: dict, root: str = ROOT, now: str | None = None) -> dict:
                        f"few minutes (`skills/{name}`)."}
 
 
-def write_builtins(root: str = ROOT, now: str | None = None) -> dict:
-    """skills/<name>/ of every built-in skill of the P6 MCP on PYTHONPATH (flag builtin: P6 MCP lists it and
-    never installs it), a new version when its definition changed; built-in folders that release no longer
-    has are removed. Returns {written, removed}; index.json is rebuilt when anything changed."""
+def core_names(root: str = ROOT) -> list[str]:
+    """core.json: the names of the core skills (P6 MCP installs them on first start)."""
+    path = os.path.join(root, CORE)
+    if not os.path.isfile(path):
+        return []
+    with open(path, encoding="utf-8") as fh:
+        data = json.load(fh)
+    if not isinstance(data, list) or not all(isinstance(n, str) for n in data):
+        raise ValueError(f"{CORE} must be a list of skill names")
+    return data
+
+
+def text_problems(where: str, text: str) -> list[str]:
+    """Skill texts are ASCII without double hyphens (P6 MCP's rule for its skills)."""
+    errs = []
+    if not text.isascii():
+        errs.append(f"{where}: not ASCII")
+    if "--" in text:
+        errs.append(f"{where}: double hyphen")
+    return errs
+
+
+def _tool_params(tool: str):
+    """Parameter names of a tool of the P6 MCP the golden harness runs."""
+    import golden
+    return golden.demo()["params"].get(tool, ())
+
+
+def core_item(skill: dict, example: str) -> dict:
+    """The shared item of a core skill: template.md with its calls, the 3 source reference files, fields.md
+    generated from spec.json and the example report (min_app_version from meta.json)."""
+    import golden
+    meta = skill["meta"]
+    calls = golden.steps_text(skill["spec"], golden.numeric_args(meta), golden.optional_args(meta))
+    texts = {"reference/report.md": skill["report"], "reference/checks.md": skill["checks"],
+             "reference/spec.json": skill["spec_text"], "reference/fields.md": golden.fields_md(skill),
+             "reference/example.md": example}
+    return {"name": meta["name"], "title": meta["title"], "description": meta["description"],
+            "args": [{"name": a["name"], "description": a["description"], "default": a.get("default")}
+                     for a in meta.get("args", [])],
+            # stored as P6 MCP's Skills page stores a template (settings_logic.clean_skill: no leading or
+            # trailing line break), so a restored core skill never reads as edited
+            "template": skill["template"].replace(golden.STEPS_MARK, calls)
+            .replace(golden.RULES_MARK, golden.WRITE_RULES).strip("\n"),
+            "files": [{"path": p, "text": texts[p]} for p in REF_FILES],
+            "min_app_version": meta["min_app_version"]}
+
+
+def build(root: str = ROOT, now: str | None = None) -> dict:
+    """skills/<name>/ of every core skill source src/<name>/ (example report rendered by the golden harness),
+    a new version only when the content changed; built-in entries of older catalogs removed; index.json
+    rewritten when an entry changed. Returns {written, unchanged, removed}; raises ValueError listing every
+    problem (nothing is written then)."""
+    import golden
     now = now or datetime.datetime.now(datetime.timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
-    written, removed = [], []
-    for skill in skills.BUILTIN:
-        meta = shop.builtin_meta(skill)
-        old = _read_meta(root, skill.name)
-        if old is not None and not old.get("builtin"):
-            raise Refused(f"skills/{skill.name} holds a shared skill, not the built-in one")
-        if old is not None and {k: old.get(k) for k in meta} == meta:
+    src = os.path.join(root, SRC)
+    names, errs, items = golden.names(src), [], {}
+    errs += [f"{CORE}: {n!r} has no src/{n}" for n in core_names(root) if n not in names]
+    for name in names:
+        skill = golden.load(name, src)
+        if skill["meta"].get("name") != name:
+            errs.append(f"src/{name}/meta.json: name must be {name!r}")
             continue
-        meta.update(version=int(old.get("version") or 1) + 1 if old else 1, author=MAINTAINER,
-                    license=shop.LICENSE, published_at=now)
+        try:
+            example = golden.golden(skill)[0]
+        except (ValueError, golden.Missing) as e:
+            errs.append(str(e))
+            continue
+        item = core_item(skill, example)
+        errs += [f"src/{name}: {e}" for e in skills.check_skill(item, strict=True)]
+        texts = [("template.md", item["template"]), ("description", item["description"])]
+        texts += [(f["path"], f["text"]) for f in item["files"]]
+        errs += [e for p, t in texts for e in text_problems(f"src/{name} {p}", t)]
+        house = getattr(skills, "house_problems", None)  # P6 MCP 1.9: SKILL.md and files, p6_x(name=) checked
+        if house is not None:
+            errs += [f"src/{name}: {e}" for e in house(skills.from_config(shop.to_stored(item)), _tool_params)]
+        old = _read_meta(root, name)
+        if old is not None and not old.get("builtin") and old.get("author") != MAINTAINER:
+            errs.append(f"src/{name}: skills/{name} is a shared skill of @{old.get('author')}: rename the core skill")
+        items[name] = (item, old)
+    if errs:
+        raise ValueError("; ".join(errs))
+    written, unchanged, removed = [], [], []
+    for name, (item, old) in items.items():
+        meta = shop.meta(item, author=MAINTAINER, license=shop.LICENSE)
+        same = old is not None and not old.get("builtin") and {k: old.get(k) for k in meta} == meta
+        if same:
+            meta.update(version=old.get("version"), published_at=old.get("published_at"))
+        else:
+            meta.update(version=int(old.get("version") or 0) + 1 if old is not None else 1, published_at=now)
         write_skill(root, meta)
-        written.append(skill.name)
+        (unchanged if same else written).append(name)
     base = os.path.join(root, "skills")
     for name in sorted(os.listdir(base)) if os.path.isdir(base) else []:
         old = _read_meta(root, name) if os.path.isfile(_meta_path(root, name)) else None
-        if old is not None and old.get("builtin") and name not in skills.BY_NAME:
+        if old is not None and old.get("builtin") and name not in items:
             shutil.rmtree(os.path.join(base, name))
             removed.append(name)
-    if written or removed:
-        write_index(root, now)
-    return {"written": written, "removed": removed}
+    write_index(root, now)
+    return {"written": written, "unchanged": unchanged, "removed": removed}
 
 
 def build_index(root: str = ROOT, now: str | None = None) -> dict:
     entries = []
+    core = set(core_names(root))
     base = os.path.join(root, "skills")
     for name in sorted(os.listdir(base)) if os.path.isdir(base) else []:
         path = _meta_path(root, name)
@@ -159,19 +246,32 @@ def build_index(root: str = ROOT, now: str | None = None) -> dict:
             raw = fh.read()
         meta = json.loads(raw.decode("utf-8"))
         entry = {k: v for k, v in meta.items() if k not in ("args", "template", "files")}
+        if name in core:
+            entry["core"] = True
         entry["sha256"] = hashlib.sha256(raw).hexdigest()
         entries.append(entry)
     return {"schema": shop.SCHEMA, "generated_at": now, "skills": entries}
 
 
-def write_index(root: str = ROOT, now: str | None = None) -> None:
+def write_index(root: str = ROOT, now: str | None = None) -> bool:
+    """Rewrite index.json when its entries changed (generated_at kept otherwise). True when written."""
+    path = os.path.join(root, shop.INDEX)
     now = now or datetime.datetime.now(datetime.timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
-    _write(os.path.join(root, shop.INDEX), json.dumps(build_index(root, now), indent=2, ensure_ascii=False) + "\n")
+    new = build_index(root, now)
+    try:
+        with open(path, encoding="utf-8") as fh:
+            if json.load(fh).get("skills") == new["skills"]:
+                return False
+    except (OSError, ValueError):
+        pass
+    _write(path, json.dumps(new, indent=2, ensure_ascii=False) + "\n")
+    return True
 
 
 def check(root: str = ROOT) -> list[str]:
-    """Problems of the catalog: invalid skills, built-in skills that differ from the P6 MCP release, a folder
-    name that differs from its skill, a stale index."""
+    """Problems of the catalog: invalid skills, built-in entries left, a folder name that differs from its
+    skill, core.json naming a skill without source or folder, a stale index. (Whether skills/ matches src/ is
+    checked by running build and comparing: see .github/workflows/check.yml.)"""
     errs = []
     base = os.path.join(root, "skills")
     for name in sorted(os.listdir(base)) if os.path.isdir(base) else []:
@@ -182,11 +282,19 @@ def check(root: str = ROOT) -> list[str]:
         with open(path, encoding="utf-8") as fh:
             meta = json.load(fh)
         if meta.get("builtin"):
-            errs += [f"skills/{name}: {e} (run python tools/catalog.py builtins)" for e in shop.check_builtin(meta)]
+            errs.append(f"skills/{name}: a built-in entry (P6 MCP has none since 1.9.0): run python "
+                        "tools/catalog.py build")
         else:
             errs += [f"skills/{name}: {e}" for e in shop.check_shared(meta)]
         if meta.get("name") != name:
             errs.append(f"skills/{name}: holds the skill {meta.get('name')!r}")
+    try:
+        core = core_names(root)
+    except (OSError, ValueError) as e:
+        return errs + [f"{CORE}: {e}"]
+    for n in core:
+        if not os.path.isdir(os.path.join(root, SRC, n)) or not os.path.isfile(_meta_path(root, n)):
+            errs.append(f"{CORE}: {n!r} needs src/{n} and skills/{n} (run python tools/catalog.py build)")
     try:
         with open(os.path.join(root, shop.INDEX), encoding="utf-8") as fh:
             current = json.load(fh)
@@ -204,15 +312,21 @@ def main(argv=None) -> int:
     p.add_argument("--event", required=True)
     p.add_argument("--out", required=True)
     sub.add_parser("index")
-    sub.add_parser("builtins")
+    sub.add_parser("build")
     sub.add_parser("check")
     a = ap.parse_args(argv)
     if a.cmd == "index":
         write_index()
         return 0
-    if a.cmd == "builtins":
-        res = write_builtins()
-        print(f"written: {', '.join(res['written']) or 'none'}; removed: {', '.join(res['removed']) or 'none'}")
+    if a.cmd == "build":
+        try:
+            res = build()
+        except ValueError as e:
+            for line in str(e).split("; "):
+                print(line, file=sys.stderr)
+            return 1
+        print(f"written: {', '.join(res['written']) or 'none'}; unchanged: {', '.join(res['unchanged']) or 'none'}; "
+              f"removed: {', '.join(res['removed']) or 'none'}")
         return 0
     if a.cmd == "check":
         errs = check()

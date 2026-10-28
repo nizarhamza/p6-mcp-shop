@@ -1,0 +1,11 @@
+{
+  "name": "resource-wbs-summary",
+  "title": "Resource and WBS summary",
+  "description": "Units and costs of a P6 project by resource, then activities and units by WBS and by activity status, with totals. Use when the user asks how hours, units or costs are spread over resources, WBS or status.",
+  "args": [
+    {"name": "project", "description": "Project ID as shown in P6", "default": null},
+    {"name": "wbs_level", "description": "WBS level of the WBS table (1 = the level below the project node)", "default": "1"}
+  ],
+  "min_app_version": "1.9.0",
+  "example_args": {"project": "DEMO-SS225"}
+}

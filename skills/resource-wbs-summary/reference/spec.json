@@ -1,0 +1,91 @@
+{
+  "spec": 1,
+  "steps": [
+    {"id": "res", "tool": "p6_resource_summary", "args": {"project": "{project}", "limit": 10},
+     "why": "quantities and costs per resource, totals"},
+    {"id": "wbs", "tool": "p6_group_summary", "args": {"project": "{project}", "by": "wbs", "wbs_level": "{wbs_level}", "limit": 30},
+     "why": "activities and units per WBS node, totals, data date"},
+    {"id": "status", "tool": "p6_group_summary", "args": {"project": "{project}", "by": "status", "limit": 10},
+     "why": "activities and units per status"}
+  ],
+  "slots": {
+    "data_date": {"step": "wbs", "path": "schedule_state.data_date", "format": "date", "meaning": "data date of the project"},
+    "last_f9": {"step": "wbs", "path": "schedule_state.last_schedule_date", "format": "datetime", "meaning": "last schedule run (F9) in P6"},
+    "stale": {"step": "wbs", "path": "schedule_state.stale", "format": "flag", "meaning": "this server changed the project after the last F9"},
+    "resources": {"step": "res", "path": "totals.resources", "format": "int", "unit": "count", "meaning": "resources assigned in the project (role only assignments not counted)"},
+    "assignments": {"step": "res", "path": "totals.assignments", "format": "int", "unit": "count", "meaning": "resource assignments"},
+    "asg_activities": {"step": "res", "path": "totals.activities", "format": "int", "unit": "count", "meaning": "activities with at least one assignment"},
+    "units_planned": {"step": "res", "path": "totals.planned_qty", "format": "n1", "unit": "h", "meaning": "planned (budgeted) units of the labor and nonlabor assignments"},
+    "units_actual": {"step": "res", "path": "totals.actual_qty", "format": "n1", "unit": "h", "meaning": "actual units (regular plus overtime) of the labor and nonlabor assignments"},
+    "units_remaining": {"step": "res", "path": "totals.remaining_qty", "format": "n1", "unit": "h", "meaning": "remaining units of the labor and nonlabor assignments"},
+    "units_at_completion": {"step": "res", "path": "totals.at_completion_qty", "format": "n1", "unit": "h", "meaning": "actual plus remaining units of the labor and nonlabor assignments"},
+    "units_pct": {"step": "res", "path": "totals.units_pct", "format": "pct1", "unit": "%", "meaning": "units % complete: actual / at completion units, labor and nonlabor"},
+    "cost_planned": {"step": "res", "path": "totals.planned_cost", "format": "n0", "unit": "cost", "meaning": "planned cost of every assignment"},
+    "cost_actual": {"step": "res", "path": "totals.actual_cost", "format": "n0", "unit": "cost", "meaning": "actual cost of every assignment"},
+    "cost_remaining": {"step": "res", "path": "totals.remaining_cost", "format": "n0", "unit": "cost", "meaning": "remaining cost of every assignment"},
+    "cost_at_completion": {"step": "res", "path": "totals.at_completion_cost", "format": "n0", "unit": "cost", "meaning": "actual plus remaining cost of every assignment"},
+    "other_assignments": {"step": "res", "path": "totals.other_type_assignments", "format": "int", "unit": "count", "meaning": "material and other assignments left out of the unit totals"},
+    "activities": {"step": "wbs", "path": "totals.activities", "format": "int", "unit": "count", "meaning": "activities of the project"},
+    "open_activities": {"step": "wbs", "path": "totals.open", "format": "int", "unit": "count", "meaning": "open activities: not completed, LOE and WBS summary left out"},
+    "critical": {"step": "wbs", "path": "totals.critical", "format": "int", "unit": "count", "meaning": "critical open activities under the project's definition"},
+    "critical_definition": {"step": "wbs", "path": "critical_definition", "format": "text", "meaning": "the project's definition of critical"},
+    "level": {"step": "wbs", "path": "level", "format": "int", "meaning": "WBS level of the WBS table"}
+  },
+  "tables": {
+    "resources": {
+      "step": "res", "rows": "rows", "cap": 10, "noun": "resources", "empty": "No resource assignment in this project.",
+      "meaning": "One row per resource: labor and nonlabor first, then material, each by largest planned quantity.",
+      "columns": [
+        {"key": "resource", "head": "Resource", "path": ["resource", "name"], "format": "id_name"},
+        {"key": "type", "head": "Type", "path": "type", "format": "text"},
+        {"key": "activities", "head": "Activities", "path": "activities", "format": "int", "unit": "count"},
+        {"key": "planned", "head": "Planned qty", "path": "planned_qty", "format": "n1", "unit": "qty"},
+        {"key": "actual", "head": "Actual qty", "path": "actual_qty", "format": "n1", "unit": "qty"},
+        {"key": "remaining", "head": "Remaining qty", "path": "remaining_qty", "format": "n1", "unit": "qty"},
+        {"key": "units_pct", "head": "Units %", "path": "units_pct", "format": "pct1", "unit": "%"},
+        {"key": "cost", "head": "At completion cost", "path": "at_completion_cost", "format": "n0", "unit": "cost"},
+        {"key": "start", "head": "Start", "path": "start", "format": "date"},
+        {"key": "finish", "head": "Finish", "path": "finish", "format": "date"}
+      ]
+    },
+    "wbs": {
+      "step": "wbs", "rows": "rows", "cap": 30, "noun": "WBS nodes", "empty": "No activity in this project.",
+      "totals": {"path": "totals", "label": "Total"},
+      "meaning": "One row per WBS node at the level asked, in P6 WBS order; activities on a shallower node keep their own row.",
+      "columns": [
+        {"key": "wbs", "head": "WBS", "path": ["group", "name"], "format": "id_name"},
+        {"key": "activities", "head": "Activities", "path": "activities", "format": "int", "unit": "count"},
+        {"key": "not_started", "head": "Not started", "path": "not_started", "format": "int", "unit": "count"},
+        {"key": "in_progress", "head": "In progress", "path": "in_progress", "format": "int", "unit": "count"},
+        {"key": "completed", "head": "Completed", "path": "completed", "format": "int", "unit": "count"},
+        {"key": "budget", "head": "Budget units (h)", "path": "budget_units", "format": "n1", "unit": "h"},
+        {"key": "actual", "head": "Actual units (h)", "path": "actual_units", "format": "n1", "unit": "h"},
+        {"key": "units_pct", "head": "Units %", "path": "units_pct", "format": "pct1", "unit": "%"},
+        {"key": "critical", "head": "Critical", "path": "critical", "format": "int", "unit": "count"},
+        {"key": "min_tf", "head": "Min total float (d)", "path": "min_tf_d", "format": "n1", "unit": "d"},
+        {"key": "finish", "head": "Finish", "path": "finish", "format": "date"}
+      ]
+    },
+    "status": {
+      "step": "status", "rows": "rows", "cap": 10, "noun": "statuses", "empty": "No activity in this project.",
+      "totals": {"path": "totals", "label": "Total"},
+      "meaning": "One row per activity status, in P6 order (not started, in progress, completed).",
+      "columns": [
+        {"key": "status", "head": "Status", "path": "name", "format": "text"},
+        {"key": "activities", "head": "Activities", "path": "activities", "format": "int", "unit": "count"},
+        {"key": "budget", "head": "Budget units (h)", "path": "budget_units", "format": "n1", "unit": "h"},
+        {"key": "actual", "head": "Actual units (h)", "path": "actual_units", "format": "n1", "unit": "h"},
+        {"key": "units_pct", "head": "Units %", "path": "units_pct", "format": "pct1", "unit": "%"},
+        {"key": "rem_dur", "head": "Remaining duration (d)", "path": "rem_dur_d", "format": "n1", "unit": "d"},
+        {"key": "critical", "head": "Critical", "path": "critical", "format": "int", "unit": "count"}
+      ]
+    }
+  },
+  "checks": [
+    {"equal": ["wbs.schedule_state.data_date", "status.schedule_state.data_date"], "text": "same data date in both group summaries"},
+    {"equal": ["wbs.totals.activities", "status.totals.activities"], "text": "same number of activities by WBS and by status"},
+    {"equal": ["wbs.totals.budget_units", "status.totals.budget_units"], "text": "same budget units by WBS and by status"},
+    {"equal": ["wbs.totals.actual_units", "status.totals.actual_units"], "text": "same actual units by WBS and by status"},
+    {"equal": ["wbs.totals.critical", "status.totals.critical"], "text": "same critical count by WBS and by status"}
+  ]
+}

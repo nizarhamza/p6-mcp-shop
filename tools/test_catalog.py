@@ -2,6 +2,7 @@
 
 import json
 import os
+import shutil
 import sys
 import tempfile
 import unittest
@@ -9,7 +10,7 @@ import unittest
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 import catalog  # noqa: E402
-from p6mcp import __version__, shop, skills  # noqa: E402
+from p6mcp import shop  # noqa: E402
 
 SKILL = {"name": "float-watch", "title": "Float watch", "description": "Activities losing float. Use when asked.",
          "args": [{"name": "project", "description": "Project ID", "default": None}],
@@ -67,8 +68,9 @@ class CatalogTest(unittest.TestCase):
         self.assertEqual(catalog.check(self.root), [])
 
     def test_refusals_and_check(self):
+        os.makedirs(os.path.join(self.root, "src", "float-core"))  # a core skill's source (built by build)
         for bad, why in ((dict(SKILL, template="Use p6_nope."), "unknown tools"),
-                         (dict(SKILL, name="weekly-update-review"), "built-in"),
+                         (dict(SKILL, name="float-core"), "core skill of the catalog"),
                          (dict(SKILL, files=[{"path": "run.ps1", "text": "x"}]), "reference file"),
                          (dict(SKILL, name="../escape"), "name")):
             with self.assertRaisesRegex(catalog.Refused, why):
@@ -81,41 +83,28 @@ class CatalogTest(unittest.TestCase):
         catalog.write_index(self.root)
         self.assertEqual(catalog.check(self.root), [])
 
-    def test_builtins(self):
+    def test_builtin_entries_and_core_flags(self):
         catalog.publish(event(SKILL), self.root)
-        res = catalog.write_builtins(self.root, now="2026-10-28T12:00:00Z")
-        names = [s.name for s in skills.BUILTIN]
-        self.assertEqual(res, {"written": names, "removed": []})
-        meta = json.loads(self.read("skills", "delay-whatif", "p6mcp.json"))
-        self.assertEqual((meta["builtin"], meta["version"], meta["author"]), (True, 1, catalog.MAINTAINER))
-        # SKILL.md exactly as P6 MCP writes it in the clients' skills folders
-        self.assertEqual(self.read("skills", "delay-whatif", "SKILL.md"),
-                         skills.skill_md(skills.BY_NAME["delay-whatif"]))
-        index = {e["name"]: e for e in json.loads(self.read("index.json"))["skills"]}
-        self.assertEqual(sorted(index), sorted(names + ["float-watch"]))
-        self.assertTrue(index["update-import-safely"]["builtin"] and index["update-import-safely"]["writes"])
-        self.assertNotIn("builtin", index["float-watch"])
-        self.assertEqual(catalog.check(self.root), [])
-
-        before = self.read("index.json")
-        self.assertEqual(catalog.write_builtins(self.root), {"written": [], "removed": []})  # nothing changed
-        self.assertEqual(self.read("index.json"), before)
-        with self.assertRaisesRegex(catalog.Refused, "built-in"):
-            catalog.publish(event(dict(SKILL, name="delay-whatif")), self.root)
-
-        path = os.path.join(self.root, "skills", "delay-whatif", "p6mcp.json")
-        with open(path, "w", encoding="utf-8") as fh:  # a text of an older release
-            json.dump(dict(meta, template="Older text."), fh)
+        old = os.path.join(self.root, "skills", "delay-whatif")  # a built-in entry of an older catalog
+        os.makedirs(old)
+        with open(os.path.join(old, "p6mcp.json"), "w", encoding="utf-8") as fh:
+            json.dump({"builtin": True, "name": "delay-whatif"}, fh)
         catalog.write_index(self.root)
-        self.assertIn("skills/delay-whatif: differs from the built-in skill of P6 MCP "
-                      f"{__version__}: template (run python tools/catalog.py builtins)", catalog.check(self.root))
-        os.makedirs(os.path.join(self.root, "skills", "gone"))
-        with open(os.path.join(self.root, "skills", "gone", "p6mcp.json"), "w", encoding="utf-8") as fh:
-            json.dump(dict(meta, name="gone"), fh)  # a built-in skill this release no longer has
-        res = catalog.write_builtins(self.root)
-        self.assertEqual(res, {"written": ["delay-whatif"], "removed": ["gone"]})
-        self.assertEqual(json.loads(self.read("skills", "delay-whatif", "p6mcp.json"))["version"], 2)
+        self.assertIn("skills/delay-whatif: a built-in entry (P6 MCP has none since 1.9.0): run python "
+                      "tools/catalog.py build", catalog.check(self.root))
+        shutil.rmtree(old)
+        catalog.write_index(self.root)
         self.assertEqual(catalog.check(self.root), [])
+        with open(os.path.join(self.root, "core.json"), "w", encoding="utf-8") as fh:
+            json.dump(["float-watch"], fh)  # a core name needs its source
+        self.assertIn("core.json: 'float-watch' needs src/float-watch and skills/float-watch (run python "
+                      "tools/catalog.py build)", catalog.check(self.root))
+        self.assertIn("index.json is out of date: run python tools/catalog.py index", catalog.check(self.root))
+        before = self.read("index.json")
+        self.assertTrue(catalog.write_index(self.root))
+        self.assertTrue(json.loads(self.read("index.json"))["skills"][0]["core"])
+        self.assertFalse(catalog.write_index(self.root))  # same entries: generated_at kept, nothing rewritten
+        self.assertNotEqual(self.read("index.json"), before)
 
     def test_main_writes_the_result(self):
         path = os.path.join(self.root, "event.json")

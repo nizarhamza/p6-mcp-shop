@@ -1,0 +1,12 @@
+{
+  "name": "delay-whatif",
+  "title": "Delay what-if",
+  "description": "What-if impact of delaying one activity of a P6 project, computed in memory: the activity today, what drives it, where its float comes from, then the project finish, milestones, critical counts and the activities that move (the database is never written). Use when the user asks what happens if an activity is late or delayed.",
+  "args": [
+    {"name": "project", "description": "Project ID as shown in P6", "default": null},
+    {"name": "task_code", "description": "Activity ID of the activity to delay", "default": null},
+    {"name": "delay_days", "description": "Delay in days of the activity's calendar, added to its remaining duration", "default": "10"}
+  ],
+  "min_app_version": "1.9.0",
+  "example_args": {"project": "DEMO-SS225", "task_code": "PRC-TR-1040"}
+}

@@ -1,0 +1,11 @@
+{
+  "name": "milestone-tracker",
+  "title": "Milestone tracker",
+  "description": "Milestones of a P6 project against its baseline: dates, variance in working and calendar days, float and critical flags, the open milestones most late and what drives the first one (the database is never written). Use when the user asks about milestones, key dates or how the milestones compare with the baseline.",
+  "args": [
+    {"name": "project", "description": "Project ID as shown in P6", "default": null},
+    {"name": "baseline", "description": "Project ID of the baseline to compare with (empty: the project baseline set in P6)", "default": ""}
+  ],
+  "min_app_version": "1.9.0",
+  "example_args": {"project": "DEMO-SS225"}
+}

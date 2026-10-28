@@ -1,0 +1,85 @@
+{
+  "spec": 1,
+  "steps": [
+    {"id": "ins", "tool": "p6_inspect_xer", "args": {"path": "{xer_path}"},
+     "why": "file facts, projects in the file, pre-flight errors, warnings and info, global items reused or created"},
+    {"id": "dry", "tool": "p6_import_xer", "args": {"path": "{xer_path}", "mode": "update", "project": "{project}"},
+     "why": "dry run of the update (nothing is written): data date, refusal, counts per table, rows missing from the XER"}
+  ],
+  "slots": {
+    "file_version": {"step": "ins", "path": "header.1", "format": "text", "meaning": "P6 version that wrote the file"},
+    "file_date": {"step": "ins", "path": "header.2", "format": "date", "meaning": "export date in the file header"},
+    "file_bytes": {"step": "ins", "path": "bytes", "format": "n0", "meaning": "file size in bytes"},
+    "encoding": {"step": "ins", "path": "encoding", "format": "text", "meaning": "text encoding read (utf-8, else cp1252)"},
+    "end_marker": {"step": "ins", "path": "has_end_marker", "format": "flag", "meaning": "the file ends with %E (not truncated)"},
+    "bad_chars": {"step": "ins", "path": "replacement_chars", "format": "int", "unit": "count", "meaning": "characters not readable in that encoding"},
+    "xer_project": {"step": "ins", "path": "preflight.project", "format": "text", "meaning": "Project ID of the file's project that is imported"},
+    "dd_database": {"step": "dry", "path": "data_date.database", "format": "datetime", "meaning": "data date of the project in the database"},
+    "dd_xer": {"step": "dry", "path": "data_date.xer", "format": "datetime", "meaning": "data date of the XER project"},
+    "dd_older": {"step": "dry", "path": "data_date.older", "format": "flag", "meaning": "the XER data date is older than the database's"},
+    "would_refuse": {"step": "dry", "path": "would_refuse", "format": "flag", "meaning": "applying these arguments would be refused"},
+    "miss_acts": {"step": "dry", "path": "missing_from_xer.TASK.count", "format": "int", "unit": "count", "meaning": "activities of the project not in the XER (never deleted)"},
+    "miss_links": {"step": "dry", "path": "missing_from_xer.TASKPRED.count", "format": "int", "unit": "count", "meaning": "relationships of the project not in the XER (removable)"},
+    "miss_links_on": {"step": "dry", "path": "missing_from_xer.TASKPRED.on_missing_activities", "format": "int", "unit": "count", "meaning": "relationships of missing activities (never removed)"},
+    "miss_asg": {"step": "dry", "path": "missing_from_xer.TASKRSRC.count", "format": "int", "unit": "count", "meaning": "assignments of the project not in the XER (removable)"},
+    "miss_asg_on": {"step": "dry", "path": "missing_from_xer.TASKRSRC.on_missing_activities", "format": "int", "unit": "count", "meaning": "assignments of missing activities (never removed)"}
+  },
+  "tables": {
+    "xer_projects": {"step": "ins", "rows": "projects", "cap": 10, "noun": "projects", "empty": "No project in the file.",
+      "columns": [
+        {"key": "project", "head": "Project ID", "path": "short_name", "format": "text"},
+        {"key": "data_date", "head": "Data date", "path": "data_date", "format": "datetime"},
+        {"key": "activities", "head": "Activities", "path": "activities", "format": "int", "unit": "count"}]},
+    "file_tables": {"step": "ins", "rows": "tables", "cap": 30, "noun": "tables", "empty": "No table in the file.",
+      "columns": [
+        {"key": "table", "head": "Table", "path": "_key", "format": "text"},
+        {"key": "rows", "head": "Rows", "path": "_value", "format": "int", "unit": "count"}]},
+    "pf_errors": {"step": "ins", "rows": "preflight.errors", "cap": 20, "noun": "errors", "empty": "No pre-flight error.",
+      "columns": [
+        {"key": "check", "head": "Error", "path": "check", "format": "text"},
+        {"key": "count", "head": "Items", "path": "count", "format": "int", "unit": "count"},
+        {"key": "first", "head": "First item", "path": "sample.0", "format": "text"},
+        {"key": "note", "head": "Note", "path": "note", "format": "text", "none": ""}]},
+    "pf_warnings": {"step": "ins", "rows": "preflight.warnings", "cap": 20, "noun": "warnings", "empty": "No pre-flight warning.",
+      "columns": [
+        {"key": "check", "head": "Warning", "path": "check", "format": "text"},
+        {"key": "count", "head": "Items", "path": "count", "format": "int", "unit": "count"},
+        {"key": "first", "head": "First item", "path": "sample.0", "format": "text"},
+        {"key": "note", "head": "Note", "path": "note", "format": "text", "none": ""}]},
+    "pf_info": {"step": "ins", "rows": "preflight.info", "cap": 20, "noun": "items", "empty": "No pre-flight information.",
+      "columns": [
+        {"key": "check", "head": "Information", "path": "check", "format": "text"},
+        {"key": "count", "head": "Items", "path": "count", "format": "int", "unit": "count"},
+        {"key": "first", "head": "First item", "path": "sample.0", "format": "text"},
+        {"key": "note", "head": "Note", "path": "note", "format": "text", "none": ""}]},
+    "global_items": {"step": "ins", "rows": "preflight.db_preview", "cap": 10, "noun": "tables", "empty": "No global item in the file.",
+      "columns": [
+        {"key": "table", "head": "Table", "path": "_key", "format": "text"},
+        {"key": "matched", "head": "Matched", "path": "matched", "format": "int", "unit": "count"},
+        {"key": "created", "head": "Would be created", "path": "would_create", "format": "int", "unit": "count"}]},
+    "refuse": {"step": "dry", "rows": "refuse_reasons", "cap": 10, "noun": "reasons", "empty": "No reason.",
+      "columns": [{"key": "reason", "head": "Reason", "path": "", "format": "text"}]},
+    "counts": {"step": "dry", "rows": "counts", "cap": 20, "noun": "tables", "empty": "No table imported.",
+      "meaning": "One row per table the import touches, in import order; Unchanged and Restored: the schedule options row (PROJPROP).",
+      "columns": [
+        {"key": "table", "head": "Table", "path": "_key", "format": "text"},
+        {"key": "matched", "head": "Matched", "path": "matched", "format": "int", "unit": "count"},
+        {"key": "inserted", "head": "Inserted", "path": "inserted", "format": "int", "unit": "count"},
+        {"key": "updated", "head": "Updated", "path": "updated", "format": "int", "unit": "count"},
+        {"key": "unchanged", "head": "Unchanged", "path": "unchanged", "format": "int", "unit": "count"},
+        {"key": "restored", "head": "Restored", "path": "restored", "format": "int", "unit": "count"},
+        {"key": "deleted", "head": "Deleted", "path": "deleted", "format": "int", "unit": "count"},
+        {"key": "kept", "head": "Kept existing", "path": "kept_existing", "format": "int", "unit": "count"},
+        {"key": "external", "head": "Skipped external", "path": "skipped_external", "format": "int", "unit": "count"},
+        {"key": "duplicate", "head": "Skipped duplicate", "path": "skipped_duplicate", "format": "int", "unit": "count"},
+        {"key": "unmapped", "head": "Skipped unmapped", "path": "skipped_unmapped", "format": "int", "unit": "count"}]},
+    "dry_warnings": {"step": "dry", "rows": "warnings", "cap": 20, "noun": "warnings", "empty": "No warning.",
+      "columns": [{"key": "warning", "head": "Warning", "path": "", "format": "text"}]}
+  },
+  "checks": [
+    {"equal": ["ins.preflight.project", "dry.preflight.project"], "text": "same project of the file in both calls"},
+    {"equal": ["ins.preflight.errors", "dry.preflight.errors"], "text": "same pre-flight errors in both calls"},
+    {"equal": ["ins.preflight.warnings", "dry.preflight.warnings"], "text": "same pre-flight warnings in both calls"},
+    {"equal": ["ins.projects.0.data_date", "dry.data_date.xer"], "text": "same XER data date in both calls"}
+  ]
+}

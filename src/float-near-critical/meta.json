@@ -1,0 +1,11 @@
+{
+  "name": "float-near-critical",
+  "title": "Float and near-critical",
+  "description": "Total float profile of a P6 project: float statistics, distribution by range, the float paths of the last F9 and the near-critical activities (total float above 0 and within a few days). Use when the user asks about float, near-critical work, float paths or how much float the schedule has left.",
+  "args": [
+    {"name": "project", "description": "Project ID as shown in P6", "default": null},
+    {"name": "near_days", "description": "Near-critical threshold: total float above 0 and at or below this many days (each activity's calendar); 10 when the user gives none", "default": "10"}
+  ],
+  "min_app_version": "1.9.0",
+  "example_args": {"project": "DEMO-SS225"}
+}

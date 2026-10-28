@@ -1,0 +1,71 @@
+{
+  "spec": 1,
+  "steps": [
+    {"id": "crit", "tool": "p6_lookahead", "args": {"project": "{project}", "weeks": "{weeks}", "critical_only": true, "limit": 30},
+     "why": "critical activities of the window"},
+    {"id": "all", "tool": "p6_lookahead", "args": {"project": "{project}", "weeks": "{weeks}", "limit": 50},
+     "why": "every activity of the window, weeks, counts, data date"}
+  ],
+  "slots": {
+    "data_date": {"step": "all", "path": "data_date", "format": "date", "meaning": "data date of the project"},
+    "last_f9": {"step": "all", "path": "schedule_state.last_schedule_date", "format": "datetime", "meaning": "last schedule run (F9) in P6"},
+    "stale": {"step": "all", "path": "schedule_state.stale", "format": "flag", "meaning": "this server changed the project after the last F9"},
+    "window_from": {"step": "all", "path": "window.from", "format": "datetime", "meaning": "start of the window (the data date)"},
+    "window_to": {"step": "all", "path": "window.to", "format": "datetime", "meaning": "end of the window, excluded"},
+    "window_days": {"step": "all", "path": "window.days", "format": "int", "unit": "count", "meaning": "length of the window in calendar days"},
+    "listed": {"step": "all", "path": "total", "format": "int", "unit": "count", "meaning": "activities of the window (LOE and WBS summary left out)"},
+    "in_progress": {"step": "all", "path": "counts.in_progress", "format": "int", "unit": "count", "meaning": "activities in progress"},
+    "starting": {"step": "all", "path": "counts.starting", "format": "int", "unit": "count", "meaning": "not started activities starting in the window"},
+    "finishing": {"step": "all", "path": "counts.finishing", "format": "int", "unit": "count", "meaning": "open activities finishing in the window"},
+    "spanning": {"step": "all", "path": "counts.spanning", "format": "int", "unit": "count", "meaning": "not started activities starting before and finishing after the window"},
+    "critical": {"step": "all", "path": "counts.critical", "format": "int", "unit": "count", "meaning": "critical open activities of the window"},
+    "critical_definition": {"step": "all", "path": "critical_definition", "format": "text", "meaning": "the project's definition of critical"}
+  },
+  "tables": {
+    "weeks": {
+      "step": "all", "rows": "weeks", "cap": 13, "noun": "weeks", "empty": "No week in the window.",
+      "meaning": "The weeks of the window: 7 calendar days each from the window start, the last one cut at the window end.",
+      "columns": [
+        {"key": "week", "head": "Week", "path": "week", "format": "int"},
+        {"key": "from", "head": "From", "path": "from", "format": "datetime"},
+        {"key": "to", "head": "To (excluded)", "path": "to", "format": "datetime"}
+      ]
+    },
+    "critical": {
+      "step": "crit", "rows": "rows", "cap": 30, "noun": "critical activities", "empty": "No critical activity in the window.",
+      "meaning": "Critical open activities of the window, by forecast start, then finish, then Activity ID.",
+      "columns": [
+        {"key": "activity", "head": "Activity", "path": ["task_code", "task_name"], "format": "id_name"},
+        {"key": "status", "head": "Status", "path": "status_code", "format": "text"},
+        {"key": "categories", "head": "Categories", "path": "window", "format": "list"},
+        {"key": "start", "head": "Forecast start", "path": "fcst_start", "format": "date"},
+        {"key": "finish", "head": "Forecast finish", "path": "fcst_finish", "format": "date"},
+        {"key": "start_week", "head": "Start week", "path": "start_week", "format": "int", "none": "outside"},
+        {"key": "finish_week", "head": "Finish week", "path": "finish_week", "format": "int", "none": "outside"},
+        {"key": "tf", "head": "Total float (d)", "path": "total_float_d", "format": "n1", "unit": "d"},
+        {"key": "critical", "head": "Critical", "path": "critical", "format": "flag"}
+      ]
+    },
+    "all": {
+      "step": "all", "rows": "rows", "cap": 50, "noun": "activities", "empty": "No activity in the window.",
+      "meaning": "Every activity of the window, by forecast start, then finish, then Activity ID.",
+      "columns": [
+        {"key": "activity", "head": "Activity", "path": ["task_code", "task_name"], "format": "id_name"},
+        {"key": "status", "head": "Status", "path": "status_code", "format": "text"},
+        {"key": "categories", "head": "Categories", "path": "window", "format": "list"},
+        {"key": "start", "head": "Forecast start", "path": "fcst_start", "format": "date"},
+        {"key": "finish", "head": "Forecast finish", "path": "fcst_finish", "format": "date"},
+        {"key": "start_week", "head": "Start week", "path": "start_week", "format": "int", "none": "outside"},
+        {"key": "finish_week", "head": "Finish week", "path": "finish_week", "format": "int", "none": "outside"},
+        {"key": "tf", "head": "Total float (d)", "path": "total_float_d", "format": "n1", "unit": "d"},
+        {"key": "critical", "head": "Critical", "path": "critical", "format": "flag"}
+      ]
+    }
+  },
+  "checks": [
+    {"equal": ["crit.data_date", "all.data_date", "all.schedule_state.data_date"], "text": "same data date in both look-aheads and the schedule state"},
+    {"equal": ["crit.window.from", "all.window.from"], "text": "same window start"},
+    {"equal": ["crit.window.to", "all.window.to"], "text": "same window end"},
+    {"equal": ["crit.total", "all.counts.critical"], "text": "critical activities listed = critical count of the window"}
+  ]
+}

@@ -1,0 +1,37 @@
+{
+  "spec": 1,
+  "steps": [
+    {"id": "eps", "tool": "p6_list_eps", "args": {"order": "tree", "limit": 200},
+     "why": "every EPS node in tree order, with its path and project counts"},
+    {"id": "prj", "tool": "p6_list_projects", "args": {"exclude_templates": true, "eps": "{eps}", "order": "eps", "limit": 200},
+     "why": "projects in EPS tree order, then Project ID (template projects and baselines left out)"}
+  ],
+  "slots": {
+    "eps_total": {"step": "eps", "path": "total", "format": "int", "unit": "count", "meaning": "EPS nodes of the database"},
+    "total": {"step": "prj", "path": "total", "format": "int", "unit": "count", "meaning": "projects listed (of the EPS asked and the EPS below it, else of every EPS), templates and baselines left out"}
+  },
+  "tables": {
+    "eps": {
+      "step": "eps", "rows": "rows", "cap": 200, "noun": "EPS nodes", "empty": "No EPS node in this database.",
+      "meaning": "One row per EPS node, each before the EPS below it; project counts leave out baselines and templates.",
+      "columns": [
+        {"key": "path", "head": "EPS", "path": "path", "format": "text"},
+        {"key": "eps_id", "head": "EPS ID", "path": "eps_id", "format": "text"},
+        {"key": "projects", "head": "Projects", "path": "projects", "format": "int", "unit": "count"},
+        {"key": "subtree", "head": "With the EPS below", "path": "projects_subtree", "format": "int", "unit": "count"}
+      ]
+    },
+    "projects": {
+      "step": "prj", "rows": "rows", "cap": 200, "noun": "projects", "empty": "No project to list.",
+      "meaning": "One row per project, in EPS tree order then Project ID.",
+      "columns": [
+        {"key": "eps", "head": "EPS", "path": "eps_path", "format": "text"},
+        {"key": "project", "head": "Project", "path": ["proj_short_name", "project_name"], "format": "id_name"},
+        {"key": "status", "head": "Status", "path": "status_code", "format": "text"},
+        {"key": "data_date", "head": "Data date", "path": "last_recalc_date", "format": "date"},
+        {"key": "finish", "head": "Finish", "path": "scd_end_date", "format": "date"}
+      ]
+    }
+  },
+  "checks": []
+}

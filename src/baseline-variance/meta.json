@@ -1,0 +1,11 @@
+{
+  "name": "baseline-variance",
+  "title": "Baseline variance",
+  "description": "Variance of a P6 project against its baseline or another project: finish variance, slip causes, the activities that moved most, logic changes and earned value at the data date. Use when the user asks to compare a project with its baseline or with another version.",
+  "args": [
+    {"name": "project", "description": "Project ID as shown in P6", "default": null},
+    {"name": "baseline", "description": "Project ID of the baseline or project to compare with (empty: the project baseline)", "default": ""}
+  ],
+  "min_app_version": "1.9.0",
+  "example_args": {"project": "DEMO-SS225"}
+}

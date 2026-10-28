@@ -1,0 +1,10 @@
+{
+  "name": "schedule-quality-audit",
+  "title": "Schedule quality audit",
+  "description": "DCMA 14 quality audit of a P6 project: score, checks against their thresholds, trend since the previous audit, dangling ends, redundant links and float profile, with fixes proposed only. Use when the user asks to audit, check or score the quality of a schedule.",
+  "args": [
+    {"name": "project", "description": "Project ID as shown in P6", "default": null}
+  ],
+  "min_app_version": "1.9.0",
+  "example_args": {"project": "DEMO-SS225"}
+}

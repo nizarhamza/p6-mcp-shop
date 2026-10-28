@@ -9,7 +9,9 @@ permissions:
   contents: read
 
 env:
-  P6MCP_REF: v1.8.2  # same release as publish.yml
+  # P6 MCP whose rules, tools and demo fixture (tests/fixtures/make_demo.py) check the catalog. The core
+  # skills need 1.9.0: main until v1.9.0 is released, then that tag (publish.yml too).
+  P6MCP_REF: main
 
 jobs:
   check:
@@ -17,24 +19,40 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: P6 MCP rules
+      - name: P6 MCP (package, tests/fixtures)
         uses: actions/checkout@v4
         with:
           repository: nizarhamza/p6-mcp
           ref: ${{ env.P6MCP_REF }}
           path: p6mcp-src
-          sparse-checkout: p6mcp
 
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
+
+      - name: Install P6 MCP and pytest
+        run: python -m pip install ./p6mcp-src pytest
+
+      - name: Build leaves skills/ and index.json unchanged
+        env:
+          PYTHONPATH: p6mcp-src
+          P6MCP_SRC: p6mcp-src
+        run: |
+          python tools/catalog.py build
+          changed="$(git status --porcelain --untracked-files=all -- skills index.json)"
+          if [ -n "$changed" ]; then
+            echo "$changed"
+            echo "skills/ or index.json is not the build of src/: run python tools/catalog.py build and commit"
+            exit 1
+          fi
 
       - name: Every skill valid, index.json up to date
         env:
           PYTHONPATH: p6mcp-src
         run: python tools/catalog.py check
 
-      - name: Catalog tool tests
+      - name: Golden harness, oracles and catalog tool tests
         env:
           PYTHONPATH: p6mcp-src
-        run: python -m unittest discover -s tools -v
+          P6MCP_SRC: p6mcp-src
+        run: python -m pytest -v

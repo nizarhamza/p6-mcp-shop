@@ -1,0 +1,49 @@
+{
+  "spec": 1,
+  "steps": [
+    {"id": "sum", "tool": "p6_project_summary", "args": {"project": "{project}", "baseline": "{baseline}"},
+     "why": "data date, last F9, schedule state and the baseline used, before the file is written"},
+    {"id": "dash", "tool": "p6_export_dashboard", "args": {"project": "{project}", "path": "{path}", "baseline": "{baseline}", "prepared_by": "{prepared_by}", "revision": "{revision}", "company": "{company}", "colors": "{colors}"},
+     "why": "writes the workbook (never the database): the 7 cards as written, counts, failed DCMA checks, warnings"}
+  ],
+  "slots": {
+    "data_date": {"step": "sum", "path": "schedule_state.data_date", "format": "date", "meaning": "data date of the project"},
+    "last_f9": {"step": "sum", "path": "schedule_state.last_schedule_date", "format": "datetime", "meaning": "last schedule run (F9) in P6"},
+    "stale": {"step": "sum", "path": "schedule_state.stale", "format": "flag", "meaning": "this server changed the project after the last F9"},
+    "bl_used": {"step": "sum", "path": "baseline.used", "format": "text", "none": "none", "meaning": "Project ID of the baseline used (baseline= else the project baseline)"},
+    "file": {"step": "dash", "path": "path", "format": "text", "meaning": "the .xlsx file written"},
+    "n_acts": {"step": "dash", "path": "counts.activities", "format": "int", "unit": "count", "meaning": "activities in the Schedule Overview"},
+    "n_wbs": {"step": "dash", "path": "counts.wbs", "format": "int", "unit": "count", "meaning": "WBS nodes, the project node included"},
+    "n_ms": {"step": "dash", "path": "counts.milestones", "format": "int", "unit": "count", "meaning": "milestones in the Dashboard table (at most 30)"},
+    "n_crit": {"step": "dash", "path": "counts.critical", "format": "int", "unit": "count", "meaning": "critical open activities under the project's definition"}
+  },
+  "tables": {
+    "cards": {
+      "step": "dash", "rows": "cards", "cap": 7, "noun": "cards", "empty": "No card written.",
+      "meaning": "The 7 cards of the Dashboard sheet in their order, value (as Excel shows it) and detail as written.",
+      "columns": [
+        {"key": "card", "head": "Card", "path": "card", "format": "text"},
+        {"key": "value", "head": "Value", "path": "text", "format": "text"},
+        {"key": "detail", "head": "Detail", "path": "detail", "format": "text"}
+      ]
+    },
+    "dcma_failed": {
+      "step": "dash", "rows": "dcma_failed", "cap": 15, "noun": "checks", "empty": "Every DCMA check with a threshold passes.",
+      "meaning": "DCMA 14 checks whose pass is false, in DCMA order (tool names).",
+      "columns": [{"key": "check", "head": "Failed check", "path": "", "format": "text"}]
+    },
+    "warnings": {
+      "step": "dash", "rows": "warnings", "cap": 20, "noun": "warnings", "empty": "No warning.",
+      "meaning": "Warnings of the export, as returned.",
+      "columns": [{"key": "warning", "head": "Warning", "path": "", "format": "text"}]
+    }
+  },
+  "checks": [
+    {"equal": ["sum.schedule_state.data_date", "dash.data_date"], "text": "same data date in the summary and the export"},
+    {"equal": ["sum.schedule_state.last_schedule_date", "dash.schedule_state.last_schedule_date"], "text": "same last F9 in the summary and the export"},
+    {"equal": ["sum.baseline.used", "dash.baseline"], "text": "same baseline in the summary and the export"},
+    {"equal": ["sum.activities.total", "dash.counts.activities"], "text": "same number of activities"},
+    {"equal": ["sum.counts.wbs", "dash.counts.wbs"], "text": "same number of WBS nodes"},
+    {"equal": ["sum.critical.critical", "dash.counts.critical"], "text": "same critical count"}
+  ]
+}

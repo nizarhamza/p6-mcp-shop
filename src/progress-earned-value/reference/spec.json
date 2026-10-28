@@ -1,0 +1,79 @@
+{
+  "spec": 1,
+  "steps": [
+    {"id": "sum", "tool": "p6_project_summary", "args": {"project": "{project}", "baseline": "{baseline}"},
+     "why": "% complete by every method, baseline used, schedule state"},
+    {"id": "pc", "tool": "p6_progress_curve", "args": {"project": "{project}", "period": "{period}", "baseline": "{baseline}"},
+     "why": "earned value at the data date and the S-curve periods", "optional": true},
+    {"id": "wbs", "tool": "p6_list_wbs", "args": {"project": "{project}", "max_depth": 1, "baseline": "{baseline}", "limit": 30},
+     "why": "units % and baseline planned % per level 1 WBS node"}
+  ],
+  "slots": {
+    "data_date": {"step": "sum", "path": "schedule_state.data_date", "format": "date", "meaning": "data date"},
+    "last_f9": {"step": "sum", "path": "schedule_state.last_schedule_date", "format": "datetime", "meaning": "last F9 in P6"},
+    "stale": {"step": "sum", "path": "schedule_state.stale", "format": "flag", "meaning": "changed by this server after the last F9"},
+    "bl_used": {"step": "sum", "path": "baseline.used", "format": "text", "meaning": "baseline used (null: none)"},
+    "units_pct": {"step": "sum", "path": "percent_complete.units", "format": "pct1", "unit": "%", "meaning": "actual / at completion units (P6 units % complete)"},
+    "physical_pct": {"step": "sum", "path": "percent_complete.physical", "format": "pct1", "unit": "%", "meaning": "physical % weighted by budget units"},
+    "duration_pct": {"step": "sum", "path": "percent_complete.duration", "format": "pct1", "unit": "%", "meaning": "(original - remaining) / original duration, tasks only"},
+    "completed_pct": {"step": "sum", "path": "percent_complete.activities_completed", "format": "pct1", "unit": "%", "meaning": "completed / all activities"},
+    "budget_units": {"step": "sum", "path": "percent_complete.budget_units", "format": "n1", "unit": "h", "meaning": "budget units of the activities"},
+    "actual_units": {"step": "sum", "path": "percent_complete.actual_units", "format": "n1", "unit": "h", "meaning": "actual units of the activities"},
+    "remaining_units": {"step": "sum", "path": "percent_complete.remaining_units", "format": "n1", "unit": "h", "meaning": "remaining units of the activities"},
+    "mismatch": {"step": "sum", "path": "percent_complete.units_vs_physical_mismatch", "format": "int", "unit": "count", "meaning": "activities whose physical % and units % differ"},
+    "pct_type": {"step": "sum", "path": "percent_complete.activity_percent_type", "format": "text", "meaning": "default percent complete type of the project"},
+    "bl_planned_pct": {"step": "sum", "path": "baseline.planned_units_pct_at_data_date", "format": "pct1", "unit": "%", "meaning": "baseline planned / baseline budget units at the data date"},
+    "bl_planned": {"step": "pc", "path": "to_date.baseline_planned", "format": "n1", "unit": "h", "meaning": "baseline planned units (planned value)"},
+    "planned": {"step": "pc", "path": "to_date.planned", "format": "n1", "unit": "h", "meaning": "planned units on the current planned dates"},
+    "actual": {"step": "pc", "path": "to_date.actual", "format": "n1", "unit": "h", "meaning": "actual units of the assignments"},
+    "actual_pct": {"step": "pc", "path": "to_date.actual_pct", "format": "pct1", "unit": "%", "meaning": "actual / budget units"},
+    "earned": {"step": "pc", "path": "to_date.earned", "format": "n1", "unit": "h", "meaning": "budget x activity % complete"},
+    "earned_pct": {"step": "pc", "path": "to_date.earned_pct", "format": "pct1", "unit": "%", "meaning": "earned / budget units"},
+    "ev_variance": {"step": "pc", "path": "to_date.variance", "format": "n1", "unit": "h", "meaning": "earned minus baseline planned"},
+    "spi": {"step": "pc", "path": "to_date.spi", "format": "n2", "meaning": "earned / baseline planned"},
+    "spi_actual": {"step": "pc", "path": "to_date.spi_actual", "format": "n2", "meaning": "actual / baseline planned"},
+    "budget": {"step": "pc", "path": "measure.budget", "format": "n1", "unit": "h", "meaning": "budget units of the assignments"},
+    "at_completion": {"step": "pc", "path": "measure.at_completion", "format": "n1", "unit": "h", "meaning": "actual plus remaining units of the assignments"},
+    "period_count": {"step": "pc", "path": "period_count", "format": "int", "unit": "count", "meaning": "periods of the S-curve"},
+    "clipped": {"step": "pc", "path": "checks.clipped_actuals", "format": "int", "unit": "count", "meaning": "assignments with actual dates after the data date"},
+    "clamped": {"step": "pc", "path": "checks.clamped_remaining", "format": "int", "unit": "count", "meaning": "assignments whose remaining start is before the data date"},
+    "ev_other": {"step": "pc", "path": "checks.wbs_other_ev_technique", "format": "int", "unit": "count", "meaning": "WBS nodes with another earned value technique"},
+    "pc_error": {"step": "pc", "path": "error", "format": "text", "meaning": "error of pc (null: it worked)"}
+  },
+  "tables": {
+    "periods": {
+      "step": "pc", "rows": "periods", "cap": 36, "noun": "periods", "empty": "No period.",
+      "meaning": "One row per period from the first assignment date; quantities of the period, cumulative % of each curve's budget.",
+      "columns": [
+        {"key": "period", "head": "Period", "path": "period", "format": "text"},
+        {"key": "baseline", "head": "Baseline (h)", "path": "baseline", "format": "n1", "unit": "h"},
+        {"key": "baseline_pct", "head": "Baseline cum %", "path": "baseline_pct", "format": "pct1", "unit": "%"},
+        {"key": "planned", "head": "Planned (h)", "path": "planned", "format": "n1", "unit": "h"},
+        {"key": "planned_pct", "head": "Planned cum %", "path": "planned_pct", "format": "pct1", "unit": "%"},
+        {"key": "actual", "head": "Actual (h)", "path": "actual", "format": "n1", "unit": "h"},
+        {"key": "actual_pct", "head": "Actual cum %", "path": "actual_pct", "format": "pct1", "unit": "%"},
+        {"key": "forecast", "head": "Forecast (h)", "path": "forecast", "format": "n1", "unit": "h"},
+        {"key": "forecast_pct", "head": "Forecast cum %", "path": "forecast_pct", "format": "pct1", "unit": "%"}
+      ]
+    },
+    "wbs": {
+      "step": "wbs", "rows": "rows", "cap": 30, "noun": "WBS nodes", "empty": "No WBS node.",
+      "meaning": "The project node, then the level 1 WBS nodes in P6 order; figures of the whole subtree.",
+      "columns": [
+        {"key": "wbs", "head": "WBS", "path": ["wbs_code", "wbs_name"], "format": "id_name"},
+        {"key": "units_pct", "head": "Units %", "path": "rollup.units_pct", "format": "pct1", "unit": "%"},
+        {"key": "bl_planned_pct", "head": "BL planned %", "path": "rollup.bl_planned_pct", "format": "pct1", "unit": "%"},
+        {"key": "budget", "head": "Budget units (h)", "path": "rollup.budget_units", "format": "n1", "unit": "h"},
+        {"key": "actual", "head": "Actual units (h)", "path": "rollup.actual_units", "format": "n1", "unit": "h"},
+        {"key": "finish", "head": "Finish", "path": "rollup.finish", "format": "date"}
+      ]
+    }
+  },
+  "checks": [
+    {"equal": ["sum.schedule_state.data_date", "pc.schedule_state.data_date"], "text": "same data date"},
+    {"equal": ["sum.baseline.used", "pc.baseline.project", "wbs.baseline.project"], "text": "same baseline"},
+    {"equal": ["sum.baseline.spi_units", "pc.to_date.spi"], "text": "same SPI"},
+    {"equal": ["sum.percent_complete.budget_units", "wbs.root.rollup.budget_units"], "text": "same budget units"},
+    {"equal": ["sum.percent_complete.actual_units", "wbs.root.rollup.actual_units"], "text": "same actual units"}
+  ]
+}

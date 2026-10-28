@@ -1,167 +1,259 @@
 {
   "schema": 1,
-  "generated_at": "2026-10-28T10:29:02Z",
+  "generated_at": "2026-10-28T15:15:51Z",
   "skills": [
     {
       "schema": 1,
       "kind": "p6mcp-skill",
-      "builtin": true,
       "name": "baseline-variance",
       "title": "Baseline variance",
-      "description": "Variance of a project against its baseline (or another project): finish variance, slipped activities, link changes and SPI. Use when the user asks to compare a project with its baseline or with another version.",
+      "description": "Variance of a P6 project against its baseline or another project: finish variance, slip causes, the activities that moved most, logic changes and earned value at the data date. Use when the user asks to compare a project with its baseline or with another version.",
       "tools": [
         "p6_compare_projects",
-        "p6_progress_curve"
+        "p6_list_projects",
+        "p6_progress_curve",
+        "p6_project_summary"
       ],
       "writes": false,
-      "min_app_version": "1.8.2",
-      "version": 1,
+      "min_app_version": "1.9.0",
       "author": "nizarhamza",
       "license": "Apache-2.0",
-      "published_at": "2026-10-28T10:28:14Z",
-      "sha256": "6fdad44161c3ceeb4273089ea5b256ef22832f738e80863d28f6810b659db125"
+      "version": 2,
+      "published_at": "2026-10-28T15:15:51Z",
+      "core": true,
+      "sha256": "37c537409663c606e39f1421af618e6e8c445d7e70d6646014c444a7f3c4d74f"
     },
     {
       "schema": 1,
       "kind": "p6mcp-skill",
-      "builtin": true,
       "name": "delay-whatif",
       "title": "Delay what-if",
-      "description": "What-if impact of delaying one activity: driving path, float origin and the effect on the project finish and milestones (nothing is written). Use when the user asks what happens if an activity is late or delayed.",
+      "description": "What-if impact of delaying one activity of a P6 project, computed in memory: the activity today, what drives it, where its float comes from, then the project finish, milestones, critical counts and the activities that move (the database is never written). Use when the user asks what happens if an activity is late or delayed.",
       "tools": [
         "p6_driving_path",
         "p6_float_origin",
         "p6_get_activity",
-        "p6_schedule_whatif"
+        "p6_list_projects",
+        "p6_query_activities",
+        "p6_schedule_whatif",
+        "p6_update_activity"
       ],
-      "writes": false,
-      "min_app_version": "1.8.2",
-      "version": 1,
+      "writes": true,
+      "min_app_version": "1.9.0",
       "author": "nizarhamza",
       "license": "Apache-2.0",
-      "published_at": "2026-10-28T10:28:14Z",
-      "sha256": "3cf45c3751e0ac7fb9f0201c6e8c537b8951742542b6924ad09a5d1df12c8dde"
+      "version": 2,
+      "published_at": "2026-10-28T15:15:51Z",
+      "core": true,
+      "sha256": "8b0f22bca8e3d09fcd5eff7cb641bd26de390af5bb34c41fa5335689b375bcbd"
     },
     {
       "schema": 1,
       "kind": "p6mcp-skill",
-      "builtin": true,
       "name": "export-dashboard",
       "title": "Excel dashboard",
-      "description": "Excel project controls dashboard of a project (one A3 page and detail sheets), then a short summary of its figures (the database is never written). Use when the user asks for an Excel dashboard or a one-page project report.",
+      "description": "Excel project controls dashboard of a P6 project (one A3 page and detail sheets), then a short summary of its cards, counts, failed DCMA checks and warnings (the database is never written). Use when the user asks for an Excel dashboard or a one-page project report.",
       "tools": [
         "p6_export_dashboard",
+        "p6_list_projects",
         "p6_project_summary"
       ],
       "writes": false,
-      "min_app_version": "1.8.2",
-      "version": 1,
+      "min_app_version": "1.9.0",
       "author": "nizarhamza",
       "license": "Apache-2.0",
-      "published_at": "2026-10-28T10:28:14Z",
-      "sha256": "d97b971e7a76833bf7792848e7c48f8f26fd674576e12b0b1cb714af0eb34c0b"
+      "version": 2,
+      "published_at": "2026-10-28T15:15:51Z",
+      "core": true,
+      "sha256": "703ad2b8627c06b9e85c37f3db6917f6f45c8b8a1f41ff4a600e6db27531ccbd"
+    },
+    {
+      "schema": 1,
+      "kind": "p6mcp-skill",
+      "name": "float-near-critical",
+      "title": "Float and near-critical",
+      "description": "Total float profile of a P6 project: float statistics, distribution by range, the float paths of the last F9 and the near-critical activities (total float above 0 and within a few days). Use when the user asks about float, near-critical work, float paths or how much float the schedule has left.",
+      "tools": [
+        "p6_critical_path",
+        "p6_float_analysis",
+        "p6_float_paths",
+        "p6_list_projects"
+      ],
+      "writes": false,
+      "min_app_version": "1.9.0",
+      "author": "nizarhamza",
+      "license": "Apache-2.0",
+      "version": 1,
+      "published_at": "2026-10-28T15:15:51Z",
+      "core": true,
+      "sha256": "93496d7324474e1a3badc086eff52ca431d4e731dbb55e7708be36a7123d13cb"
     },
     {
       "schema": 1,
       "kind": "p6mcp-skill",
       "name": "list",
       "title": "List projects by EPS",
-      "description": "List the projects of the database grouped by EPS, with status, data date and finish.",
+      "description": "List the projects of the database grouped by EPS, with status, data date and finish (template projects and baselines left out). Use when the user asks which projects the database holds or what an EPS contains.",
       "tools": [
         "p6_list_eps",
-        "p6_sql_select"
+        "p6_list_projects"
       ],
       "writes": false,
-      "min_app_version": "1.8.0",
-      "version": 1,
+      "min_app_version": "1.9.0",
       "author": "nizarhamza",
       "license": "Apache-2.0",
-      "issue": 2,
-      "published_at": "2026-10-28T10:00:28Z",
-      "sha256": "dca8272af36372da4aa224fe82ac759df307d26afc08e8303c0e63b17bb35823"
+      "version": 2,
+      "published_at": "2026-10-28T15:15:51Z",
+      "core": true,
+      "sha256": "4f98dbb74b2659d51de2cdb4bcdd83aead8642f69a60ebc3c317914fa1fc5f93"
     },
     {
       "schema": 1,
       "kind": "p6mcp-skill",
       "name": "lookahead-brief",
       "title": "Look-ahead brief",
-      "description": "Short look-ahead of a P6 project: what starts, finishes and is in progress in the next weeks, critical work first. Use when the user asks what is coming up or for a short-term plan.",
+      "description": "Short look-ahead of a P6 project: activities in progress, starting and finishing in the next weeks, critical ones first, by week of the window, with fixed follow-up actions. Use when the user asks what is coming up, for a look-ahead or for a short-term plan.",
       "tools": [
-        "p6_critical_path",
-        "p6_lookahead",
+        "p6_list_projects",
+        "p6_lookahead"
+      ],
+      "writes": false,
+      "min_app_version": "1.9.0",
+      "author": "nizarhamza",
+      "license": "Apache-2.0",
+      "version": 4,
+      "published_at": "2026-10-28T15:15:51Z",
+      "core": true,
+      "sha256": "ab33069c040dda9b6dd93dd361b5313fbd44d40c63f0ea931decfe28d22d0061"
+    },
+    {
+      "schema": 1,
+      "kind": "p6mcp-skill",
+      "name": "milestone-tracker",
+      "title": "Milestone tracker",
+      "description": "Milestones of a P6 project against its baseline: dates, variance in working and calendar days, float and critical flags, the open milestones most late and what drives the first one (the database is never written). Use when the user asks about milestones, key dates or how the milestones compare with the baseline.",
+      "tools": [
+        "p6_driving_path",
+        "p6_list_projects",
+        "p6_milestones"
+      ],
+      "writes": false,
+      "min_app_version": "1.9.0",
+      "author": "nizarhamza",
+      "license": "Apache-2.0",
+      "version": 1,
+      "published_at": "2026-10-28T15:15:51Z",
+      "core": true,
+      "sha256": "3377d6bc33ba97e84411151ebe4fb0e7e05673dc84a7b220aaa7c5604c580a57"
+    },
+    {
+      "schema": 1,
+      "kind": "p6mcp-skill",
+      "name": "progress-earned-value",
+      "title": "Progress and earned value",
+      "description": "Progress of a P6 project in units: % complete by every method, earned value and SPI at the data date, the S-curve per month or week against the baseline, and progress by WBS. Use when the user asks how far a project has progressed, for its earned value or SPI, or for an S-curve.",
+      "tools": [
+        "p6_list_projects",
+        "p6_list_wbs",
+        "p6_progress_curve",
         "p6_project_summary"
       ],
       "writes": false,
-      "min_app_version": "1.8.0",
-      "version": 3,
+      "min_app_version": "1.9.0",
       "author": "nizarhamza",
       "license": "Apache-2.0",
-      "issue": 1,
-      "published_at": "2026-10-28T09:57:53Z",
-      "sha256": "27478383290581a84b4eed4a1d161aeddb45cfd28dd9d5d25ffbeef1a94632f2"
+      "version": 1,
+      "published_at": "2026-10-28T15:15:51Z",
+      "core": true,
+      "sha256": "ad99d3cb13bada5da9bf724ac1fd188170f5cf01ca28f526d40858348e2704e5"
     },
     {
       "schema": 1,
       "kind": "p6mcp-skill",
-      "builtin": true,
+      "name": "resource-wbs-summary",
+      "title": "Resource and WBS summary",
+      "description": "Units and costs of a P6 project by resource, then activities and units by WBS and by activity status, with totals. Use when the user asks how hours, units or costs are spread over resources, WBS or status.",
+      "tools": [
+        "p6_group_summary",
+        "p6_list_projects",
+        "p6_resource_summary"
+      ],
+      "writes": false,
+      "min_app_version": "1.9.0",
+      "author": "nizarhamza",
+      "license": "Apache-2.0",
+      "version": 1,
+      "published_at": "2026-10-28T15:15:51Z",
+      "core": true,
+      "sha256": "d22d1ec7820c8a2711c4c0dc8f4c6d7c225dd88ef366e66dcfeabea6ee8f73b2"
+    },
+    {
+      "schema": 1,
+      "kind": "p6mcp-skill",
       "name": "schedule-quality-audit",
       "title": "Schedule quality audit",
-      "description": "DCMA 14 quality audit of a project with trend, dangling ends, redundant links and float profile; fixes proposed as dry runs only. Use when the user asks to audit, check or score the quality of a schedule.",
+      "description": "DCMA 14 quality audit of a P6 project: score, checks against their thresholds, trend since the previous audit, dangling ends, redundant links and float profile, with fixes proposed only. Use when the user asks to audit, check or score the quality of a schedule.",
       "tools": [
+        "p6_add_relationships",
         "p6_dangling",
+        "p6_delete_relationships",
         "p6_float_analysis",
         "p6_health_check",
         "p6_health_check_compare",
+        "p6_list_projects",
         "p6_redundant_links"
       ],
-      "writes": false,
-      "min_app_version": "1.8.2",
-      "version": 1,
+      "writes": true,
+      "min_app_version": "1.9.0",
       "author": "nizarhamza",
       "license": "Apache-2.0",
-      "published_at": "2026-10-28T10:28:14Z",
-      "sha256": "e06fa55f1d2219fd259e2ef2a1f50d3db828fb844bd987de19789b9c6bd04844"
+      "version": 2,
+      "published_at": "2026-10-28T15:15:51Z",
+      "core": true,
+      "sha256": "ad5e5acaa64eafdd9c9876e74d71a15b5221e18f3fa05ef12290809612654703"
     },
     {
       "schema": 1,
       "kind": "p6mcp-skill",
-      "builtin": true,
       "name": "update-import-safely",
       "title": "Update import (safe)",
-      "description": "Import an updated XER into an existing project safely: inspect, dry run, review, then apply only on the user's yes. Use when the user wants to import or load an XER update into a project.",
+      "description": "Import an updated XER into an existing P6 project safely: inspect the file, dry run the update, report what it would change and what the XER lacks, then apply only on the user's explicit yes. Use when the user wants to import or load an XER update into a project.",
       "tools": [
         "p6_import_xer",
-        "p6_inspect_xer"
+        "p6_inspect_xer",
+        "p6_schedule_options"
       ],
       "writes": true,
-      "min_app_version": "1.8.2",
-      "version": 1,
+      "min_app_version": "1.9.0",
       "author": "nizarhamza",
       "license": "Apache-2.0",
-      "published_at": "2026-10-28T10:28:14Z",
-      "sha256": "dcb5924310293485e8658f8d5a33182b2080482cf3c0d48dc054be5e2f81f5b6"
+      "version": 2,
+      "published_at": "2026-10-28T15:15:51Z",
+      "core": true,
+      "sha256": "968b885f18b0c34f5f84f9c113f99d067c0806227156ee6493811ff7d2cdf289"
     },
     {
       "schema": 1,
       "kind": "p6mcp-skill",
-      "builtin": true,
       "name": "weekly-update-review",
       "title": "Weekly update review",
-      "description": "Weekly schedule update review of a project: progress, critical path, status issues, look-ahead and baseline variance. Use when the user asks for a weekly update review, a status report or how a project is progressing.",
+      "description": "Weekly schedule update review of a P6 project: progress, finish dates, critical path, slippage against the baseline, progress issues and a critical look-ahead, with fixed actions (read only). Use when the user asks for a weekly update review, a status report or how a project is progressing.",
       "tools": [
         "p6_compare_projects",
         "p6_critical_path",
+        "p6_list_projects",
         "p6_lookahead",
         "p6_progress_check",
         "p6_project_summary"
       ],
       "writes": false,
-      "min_app_version": "1.8.2",
-      "version": 1,
+      "min_app_version": "1.9.0",
       "author": "nizarhamza",
       "license": "Apache-2.0",
-      "published_at": "2026-10-28T10:28:14Z",
-      "sha256": "5cdc2453d0583f1139798a39a291b50d8048f5beb833feffabaf20349d760f08"
+      "version": 2,
+      "published_at": "2026-10-28T15:15:51Z",
+      "core": true,
+      "sha256": "c737ff7cc85d0be4e9169253d7f419b6a1a9e836911ae30073dff60a9dc6e8bd"
     }
   ]
 }

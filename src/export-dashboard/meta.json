@@ -1,0 +1,16 @@
+{
+  "name": "export-dashboard",
+  "title": "Excel dashboard",
+  "description": "Excel project controls dashboard of a P6 project (one A3 page and detail sheets), then a short summary of its cards, counts, failed DCMA checks and warnings (the database is never written). Use when the user asks for an Excel dashboard or a one-page project report.",
+  "args": [
+    {"name": "project", "description": "Project ID as shown in P6", "default": null},
+    {"name": "path", "description": "Full path of the .xlsx file to write", "default": null},
+    {"name": "baseline", "description": "Project ID of the baseline (empty = the project baseline)", "default": ""},
+    {"name": "prepared_by", "description": "Name printed under the title (may be empty)", "default": ""},
+    {"name": "revision", "description": "Revision printed under the title (may be empty)", "default": ""},
+    {"name": "company", "description": "Company name in the sidebar (may be empty)", "default": ""},
+    {"name": "colors", "description": "Colors 'primary,accent' in hex, for example 1F3864,C00000 (may be empty)", "default": ""}
+  ],
+  "min_app_version": "1.9.0",
+  "example_args": {"project": "DEMO-SS225", "path": "{work}/DEMO-SS225.xlsx"}
+}
