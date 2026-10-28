@@ -10,8 +10,8 @@ permissions:
 
 env:
   # P6 MCP whose rules, tools and demo fixture (tests/fixtures/make_demo.py) check the catalog. The core
-  # skills need 1.9.0: main until v1.9.0 is released, then that tag (publish.yml too).
-  P6MCP_REF: main
+  # skills need P6 MCP 1.9.0 or later (publish.yml is pinned to the same release).
+  P6MCP_REF: v1.9.0
 
 jobs:
   check:

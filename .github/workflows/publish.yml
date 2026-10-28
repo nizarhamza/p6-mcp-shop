@@ -15,7 +15,7 @@ concurrency:
   cancel-in-progress: false
 
 env:
-  P6MCP_REF: v1.8.2  # P6 MCP release whose rules check the skills (bump it to accept newer tools)
+  P6MCP_REF: v1.9.0  # P6 MCP release whose rules check the skills (bump it to accept newer tools)
 
 jobs:
   publish:
