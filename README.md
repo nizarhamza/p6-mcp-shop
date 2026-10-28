@@ -15,9 +15,9 @@ Each skill is also a plain skill folder: `skills/<name>/SKILL.md` and its refere
 
 ## Share a skill
 
-In **P6 MCP Settings > Skills**, select one of your skills and click **Share on GitHub**. Your browser opens
-a prefilled issue ([Share a P6 skill](../../issues/new?template=share-skill.yml)); check it and click Create
-(a free GitHub account is needed). The maintainer reviews it; once approved it is published here under the
+In **P6 MCP Settings > Skills**, select one of your skills and click **Share on GitHub**. P6 MCP copies the
+skill to your clipboard and your browser opens the [Share a P6 skill](../../issues/new?template=share-skill.yml)
+form: sign in if asked (a free GitHub account is needed), paste the skill in the Skill field and click Create. The maintainer reviews it; once approved it is published here under the
 Apache-2.0 license and appears in every P6 MCP Shop page within a few minutes. A new version of your own
 skill is shared the same way (same name, same GitHub account).
 
@@ -33,7 +33,8 @@ No GitHub account? Export the skill to a zip file in P6 MCP and send it to a col
   `P6MCP_REF`: known tools only, description, text reference files only, sizes), writes the folder and
   `index.json`, commits, comments and closes the issue (label **published**). A refused skill gets a comment
   and the label **needs-changes**.
-- A name belongs to its first author: another account must choose another name.
+- A name belongs to its first author: another account must choose another name. Approving the same content
+  again publishes nothing (no new version).
 
 ## Maintainer review checklist
 

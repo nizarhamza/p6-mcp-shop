@@ -57,8 +57,12 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add skills index.json
-          git commit -m "$(jq -r .commit "$RUNNER_TEMP/result.json")"
-          git push
+          if git diff --cached --quiet; then
+            echo "Nothing new to publish."
+          else
+            git commit -m "$(jq -r .commit "$RUNNER_TEMP/result.json")"
+            git push
+          fi
 
       - name: Report on the issue
         if: always()

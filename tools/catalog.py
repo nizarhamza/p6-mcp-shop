@@ -93,6 +93,10 @@ def publish(event: dict, root: str = ROOT, now: str | None = None) -> dict:
         if old.get("author") != author:
             raise Refused(f"the name {name!r} is already published by @{old.get('author')}: rename the skill "
                           "(Skills page, Edit) and share it again")
+        if skills.shared_item(old) == skills.shared_item(item):  # approved again, or shared twice: nothing new
+            return {"name": name, "version": old.get("version"), "commit": None, "unchanged": True,
+                    "message": f"**{name}** version {old.get('version')} is already published with this content: "
+                               "nothing changed."}
         version = int(old.get("version") or 1) + 1
     now = now or datetime.datetime.now(datetime.timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
     meta = shop.meta(item, version=version, author=author, license=shop.LICENSE, issue=issue["number"],

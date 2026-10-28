@@ -53,6 +53,11 @@ class CatalogTest(unittest.TestCase):
         self.assertNotIn("template", index["skills"][0])
         self.assertEqual(catalog.check(self.root), [])
 
+        before = self.read("index.json")
+        res = catalog.publish(event(SKILL, number=8), self.root)  # the same content approved again
+        self.assertEqual((res["version"], res["commit"], res["unchanged"]), (1, None, True))
+        self.assertEqual(self.read("index.json"), before)  # nothing rewritten: nothing to commit
+
         v2 = dict(SKILL, files=[], description="Newer. Use when asked.")
         res = catalog.publish(event(v2, number=9), self.root)
         self.assertEqual(res["version"], 2)

@@ -6,14 +6,15 @@ body:
   - type: markdown
     attributes:
       value: |
-        Thank you for sharing. P6 MCP filled in your skill below: check it, then click **Create**.
+        Thank you for sharing. P6 MCP copied your skill to the clipboard: paste it in the **Skill** field
+        below (Ctrl+V), tick the license box, then click **Create**.
         The maintainer reviews every skill before it is published under the Apache-2.0 license.
         **Never include client names, project names or schedule data.**
   - type: textarea
     id: skill
     attributes:
       label: Skill
-      description: The skill as P6 MCP wrote it (JSON). If this field is empty, paste the text P6 MCP copied to your clipboard.
+      description: The skill as P6 MCP copied it to your clipboard (JSON). Paste it here.
       render: json
     validations:
       required: true
