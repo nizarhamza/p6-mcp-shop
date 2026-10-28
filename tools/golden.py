@@ -733,7 +733,7 @@ def mask(text: str) -> str:
     work = demo()["work"]
     for w in sorted({work, work.replace("\\", "/"), os.path.realpath(work)}, key=len, reverse=True):
         text = text.replace(w, WORK_SHOWN)
-    return text
+    return text.replace(WORK_SHOWN + "/", WORK_SHOWN + "\\")  # a file in it reads the same on Linux and Windows
 
 
 def golden(skill: dict) -> tuple[str, dict, dict]:
