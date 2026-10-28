@@ -30,9 +30,9 @@
   ],
   "writes": false,
   "min_app_version": "1.8.0",
-  "version": 1,
+  "version": 2,
   "author": "nizarhamza",
   "license": "Apache-2.0",
   "issue": 1,
-  "published_at": "2026-10-28T09:53:14Z"
+  "published_at": "2026-10-28T09:53:44Z"
 }
