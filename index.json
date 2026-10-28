@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "generated_at": "2026-10-28T09:53:44Z",
+  "generated_at": "2026-10-28T09:57:53Z",
   "skills": [
     {
       "schema": 1,
@@ -15,12 +15,12 @@
       ],
       "writes": false,
       "min_app_version": "1.8.0",
-      "version": 2,
+      "version": 3,
       "author": "nizarhamza",
       "license": "Apache-2.0",
       "issue": 1,
-      "published_at": "2026-10-28T09:53:44Z",
-      "sha256": "8fd613294c3a09af2775525fe80bb00ace060b589dc1132962f7eee5bfb7e5a4"
+      "published_at": "2026-10-28T09:57:53Z",
+      "sha256": "27478383290581a84b4eed4a1d161aeddb45cfd28dd9d5d25ffbeef1a94632f2"
     }
   ]
 }
