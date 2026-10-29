@@ -15,7 +15,7 @@ concurrency:
   cancel-in-progress: false
 
 env:
-  P6MCP_REF: v1.10.0  # P6 MCP release whose rules check the skills (bump it to accept newer tools)
+  P6MCP_REF: v2.0.0  # P6 MCP release whose rules check the skills (bump it to accept newer tools)
 
 jobs:
   publish:
@@ -37,7 +37,7 @@ jobs:
       - name: P6 MCP rules
         uses: actions/checkout@v7
         with:
-          repository: nizarhamza/p6-mcp
+          repository: nizarhamza/mcp-for-primavera-p6
           ref: ${{ env.P6MCP_REF }}
           path: p6mcp-src
           sparse-checkout: p6mcp
