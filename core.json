@@ -10,5 +10,8 @@
   "progress-earned-value",
   "float-near-critical",
   "milestone-tracker",
-  "resource-wbs-summary"
+  "resource-wbs-summary",
+  "update-integrity-audit",
+  "schedule-risk",
+  "logic-date-integrity"
 ]

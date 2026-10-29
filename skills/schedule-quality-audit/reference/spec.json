@@ -1,6 +1,8 @@
 {
   "spec": 1,
   "steps": [
+    {"id": "cv", "tool": "p6_cpm_validate", "args": {"project": "{project}", "limit": 5},
+     "why": "engine against the last F9: the critical path test relies on it"},
     {"id": "hc", "tool": "p6_health_check", "args": {"project": "{project}"},
      "why": "full DCMA 14 run: checks, score, thresholds, baseline (saves a snapshot)"},
     {"id": "tr", "tool": "p6_health_check_compare", "args": {"project": "{project}", "before": "previous", "after": "latest"}, "optional": true,
@@ -10,7 +12,11 @@
     {"id": "rd", "tool": "p6_redundant_links", "args": {"project": "{project}", "limit": 15},
      "why": "links that are candidates for removal"},
     {"id": "fa", "tool": "p6_float_analysis", "args": {"project": "{project}"},
-     "why": "total and free float distribution of the open activities"}
+     "why": "total and free float distribution of the open activities"},
+    {"id": "fo_neg", "tool": "p6_float_origin", "args": {"project": "{project}", "task_code": "{=hc.checks.negative_float.worst.task_code}", "limit": 1},
+     "why": "where the lowest negative float comes from"},
+    {"id": "fo_high", "tool": "p6_float_origin", "args": {"project": "{project}", "task_code": "{=hc.checks.high_float.worst.task_code}", "limit": 1},
+     "why": "where the highest float comes from"}
   ],
   "slots": {
     "data_date": {"step": "hc", "path": "schedule_state.data_date", "format": "date", "meaning": "data date"},
@@ -36,11 +42,19 @@
     "tf_max": {"step": "fa", "path": "stats.tf_max_d", "format": "n1", "unit": "d", "meaning": "highest total float"},
     "tf_negative": {"step": "fa", "path": "stats.negative_tf", "format": "int", "unit": "count", "meaning": "open activities with negative total float"},
     "critical": {"step": "fa", "path": "stats.critical", "format": "int", "unit": "count", "meaning": "critical open activities"},
-    "critical_definition": {"step": "fa", "path": "stats.critical_definition", "format": "text", "meaning": "the project's definition of critical"}
+    "critical_definition": {"step": "fa", "path": "stats.critical_definition", "format": "text", "meaning": "the project's definition of critical"},
+    "match_rate": {"step": "cv", "path": "match_rate", "format": "n2", "meaning": "share of open activities the engine reproduces (1.00 = all)"},
+    "trusted": {"step": "cv", "path": "trusted", "format": "flag", "meaning": "match rate at least 0.99"},
+    "w_points": {"step": "hc", "path": "weighted_score.points", "format": "n1", "meaning": "weighted score out of 100"},
+    "w_grade": {"step": "hc", "path": "weighted_score.grade", "format": "text", "meaning": "grade A to F"},
+    "logic_count": {"step": "hc", "path": "checks.logic.count", "format": "int", "unit": "count", "meaning": "open activities without predecessor or successor"},
+    "fs_pass": {"step": "hc", "path": "checks.fs_links.pass", "format": "flag", "meaning": "fs_links passes"},
+    "neg_expl": {"step": "fo_neg", "path": "explanation", "format": "text", "meaning": "where the lowest negative float comes from"},
+    "high_expl": {"step": "fo_high", "path": "explanation", "format": "text", "meaning": "where the highest float comes from"}
   },
   "tables": {
-    "dcma": {"step": "hc", "rows": "checks", "cap": 16, "noun": "checks", "empty": "No check returned.",
-      "meaning": "One row per check, in the order returned (DCMA 14, then key_dates, information only); Value for cpli and bei.",
+    "dcma": {"step": "hc", "rows": "checks", "cap": 17, "noun": "checks", "empty": "No check returned.",
+      "meaning": "One row per check, in the order returned (DCMA 14 with logic_density, then key_dates, information only); Value for logic_density, cpli and bei.",
       "columns": [
         {"key": "check", "head": "Check", "path": "_key", "format": "text"},
         {"key": "count", "head": "Count", "path": "count", "format": "int", "unit": "count"},
@@ -50,7 +64,7 @@
         {"key": "threshold", "head": "Threshold", "path": "threshold", "format": "n2", "none": "none"},
         {"key": "pass", "head": "Pass", "path": "pass", "format": "flag", "none": "not evaluated"}
       ]},
-    "trend": {"step": "tr", "rows": "checks", "cap": 16, "noun": "checks", "empty": "No check to compare.",
+    "trend": {"step": "tr", "rows": "checks", "cap": 17, "noun": "checks", "empty": "No check to compare.",
       "meaning": "One row per check: count at the previous audit and now, change, pass now.",
       "columns": [
         {"key": "check", "head": "Check", "path": "_key", "format": "text"},
@@ -77,6 +91,14 @@
         {"key": "categories", "head": "Categories", "path": "categories", "format": "list"},
         {"key": "drives", "head": "Drives", "path": "drives", "format": "flag"}
       ]},
+    "weighted": {"step": "hc", "rows": "weighted_score.checks", "cap": 10, "noun": "checks", "empty": "No weighted check.",
+      "meaning": "Weighted checks: pass earns the weight, warn half, fail 0; not evaluated left out.",
+      "columns": [
+        {"key": "check", "head": "Check", "path": "_key", "format": "text"},
+        {"key": "weight", "head": "Weight", "path": "weight", "format": "int"},
+        {"key": "status", "head": "Status", "path": "status", "format": "text"},
+        {"key": "earned", "head": "Earned", "path": "earned", "format": "n1", "none": "left out"}
+      ]},
     "float": {"step": "fa", "rows": "buckets", "cap": 10, "noun": "float ranges", "empty": "No open activity.",
       "meaning": "Total and free float of the open activities per range of days.",
       "columns": [
@@ -88,7 +110,7 @@
       ]}
   },
   "checks": [
-    {"equal": ["hc.schedule_state.data_date", "dg.schedule_state.data_date", "rd.schedule_state.data_date", "fa.schedule_state.data_date"], "text": "same data date in every call"},
+    {"equal": ["cv.schedule_state.data_date", "hc.schedule_state.data_date", "dg.schedule_state.data_date", "rd.schedule_state.data_date", "fa.schedule_state.data_date"], "text": "same data date in every call"},
     {"equal": ["hc.open_incomplete_activities", "fa.scope.activities"], "text": "same open activities"},
     {"equal": ["hc.checks.negative_float.count", "fa.stats.negative_tf"], "text": "same negative float count"},
     {"equal": ["hc.checks.logic.dangling.open_start.count", "dg.counts.start"], "text": "same open starts"},

@@ -1,6 +1,6 @@
 ---
 name: p6-milestone-tracker
-description: "Milestones of a P6 project against its baseline: dates, variance in working and calendar days, float and critical flags, the open milestones most late and what drives the first one (the database is never written). Use when the user asks about milestones, key dates or how the milestones compare with the baseline."
+description: "Milestones of a P6 project against its baseline: dates, variance in working and calendar days, float and critical flags, the open milestones most late and what drives the first one; with contract milestones given, their constraints, predecessors and float origin (the database is never written). Use when the user asks about milestones, key dates, contract milestones or how the milestones compare with the baseline."
 ---
 <!-- p6mcp skill: written by P6 MCP Settings, overwritten on the next install -->
 <!-- p6mcp files: ["reference/report.md", "reference/checks.md", "reference/spec.json", "reference/fields.md", "reference/example.md"] -->
@@ -10,6 +10,7 @@ description: "Milestones of a P6 project against its baseline: dates, variance i
 Inputs (take them from the user's message; ask for a required one that is missing, use the default when an optional one is empty):
 - project: Project ID as shown in P6
 - baseline: Project ID of the baseline to compare with (empty: the project baseline set in P6) (may be empty)
+- contract: Activity IDs of the contract milestones, separated by commas (empty: no contract table) (may be empty)
 
 Milestone tracker of project <project>: every milestone with its date, baseline date, variance, float and critical flag, the open milestones most late against the baseline and what drives the first one. Nothing is written to the database.
 
@@ -25,7 +26,8 @@ so do not read further pages.
 1. ms = p6_milestones(project="<project>", baseline="<baseline>", limit=30): every milestone by date with its baseline date and variance, counts, baseline, must finish date.
 2. late = p6_milestones(project="<project>", baseline="<baseline>", open_only=true, order="variance", limit=10): open milestones, largest variance in working days first.
 3. drv = p6_driving_path(project="<project>", target=<late.rows.0.task_code>, limit=15): driving predecessors of the open milestone with the largest variance. <late.rows.0.task_code> is the field rows.0.task_code of the result of late: when it is null or missing, skip this call (its fields are null).
-Leave out an argument whose value is empty (baseline).
+4. ct = p6_milestones(project="<project>", baseline="<baseline>", codes="<contract>", limit=20): the contract milestones given. Make this call only when <contract> is given; when it is empty, skip it (its fields are null).
+Leave out an argument whose value is empty (baseline, contract).
 
 Write the report:
 1. Start from reference/report.md. Replace each slot placeholder (a slot name in curly braces) by the field
@@ -56,6 +58,8 @@ Write the report:
 
 For this skill:
 - The variance of a milestone is its own field: never work it out from two dates.
+- contract is passed as given (Activity IDs separated by commas). Without it, call 4 is skipped and the
+  report has no contract section.
 
 Reference files in this skill's folder (read the ones the steps need):
 - reference/report.md

@@ -56,3 +56,15 @@ Each driving chain starts from:
 | Activity | Starts from | Date |
 |-|-|-|
 | PRC-TR-1040 - Power transformers 225/63 kV - manufacturing | data_date | 2026-10-26 |
+
+## Contract milestones
+
+The contract milestones given, with their constraint, how many predecessors drive them, their forecast against the constraint date in working days of their calendar (positive = later) and where their total float comes from.
+
+| Milestone | Constraint | Constraint date | Hard | Predecessors | Forecast | Forecast - constraint (wd) | Total float (d) | Float comes from |
+|-|-|-|-|-|-|-|-|-|
+| MS-1080 - First energization 225 kV | none | n/a | no | 1 | 2027-08-20 | n/a | -36.0 | Total float -36.0 d of MS-1080 comes from the project must finish date 2027-08-16 17:00:00, through MS-1080 FS 0 d -> COM-ENR-1020 FS 0 d -> COM-ENR-1030 FS 0 d -> COM-ENR-1040 FS 0 d -> COM-ENR-1050 FS 0 d -> COM-HO-1030 FS 0 d -> MS-1090 FS 0 d -> MS-1100. |
+| MS-1090 - Provisional acceptance | none | n/a | no | 1 | 2027-10-05 | n/a | -36.0 | Total float -36.0 d of MS-1090 comes from the project must finish date 2027-08-16 17:00:00, through MS-1090 FS 0 d -> MS-1100. |
+| MS-1100 - Project completion | none | n/a | no | 3 | 2027-10-05 | n/a | -36.0 | Total float -36.0 d of MS-1100 comes from the project must finish date 2027-08-16 17:00:00, through MS-1100. |
+
+Not found in DEMO-SS225: MS-1999. Check these Activity IDs.

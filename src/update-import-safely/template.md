@@ -25,5 +25,7 @@ After the report, wait for the user's answers to the two questions:
 - Explicit yes to question 1: call p6_import_xer again with exactly the arguments of the dry run the user
   approved, dry_run=false and that dry run's confirmation_token (and confirmation_text when the dry run
   asks for it). P6 must be closed. Never show the token.
-- Then report the backup taken and stale_projects of the result, ask the user to open P6 and press F9,
-  and suggest a weekly update review once the F9 is done.
+- Then report the backup taken and stale_projects of the result. Before asking for F9, suggest running the
+  logic-date-integrity skill on the project: it checks that the submitted dates follow from the submitted
+  logic, durations and options, and F9 overwrites the submitted dates. Then ask the user to open P6 and
+  press F9, and suggest a weekly update review once the F9 is done.

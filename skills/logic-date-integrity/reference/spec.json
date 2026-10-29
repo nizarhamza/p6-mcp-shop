@@ -1,0 +1,44 @@
+{
+  "spec": 1,
+  "steps": [
+    {"id": "cv", "tool": "p6_cpm_validate", "args": {"project": "{project}", "limit": 15},
+     "why": "the engine against the last F9: match rates, activities that differ, rules"},
+    {"id": "so", "tool": "p6_schedule_options", "args": {"project": "{project}"},
+     "why": "schedule options stored for the project and the lag calendar"}
+  ],
+  "slots": {
+    "data_date": {"step": "cv", "path": "schedule_state.data_date", "format": "date", "meaning": "data date"},
+    "last_f9": {"step": "cv", "path": "schedule_state.last_schedule_date", "format": "datetime", "meaning": "last schedule run (F9) in P6"},
+    "stale": {"step": "cv", "path": "schedule_state.stale", "format": "flag", "meaning": "changed by this server after the last F9"},
+    "match_rate": {"step": "cv", "path": "match_rate", "format": "n2", "meaning": "share of open activities with the same early and late dates and total float (1.00 = all)"},
+    "match_done": {"step": "cv", "path": "match_rate_completed", "format": "n2", "meaning": "share of completed activities with the same early dates"},
+    "trusted": {"step": "cv", "path": "trusted", "format": "flag", "meaning": "match rate at least 0.99"},
+    "n_open": {"step": "cv", "path": "counts.open", "format": "int", "unit": "count", "meaning": "open activities"},
+    "n_open_bad": {"step": "cv", "path": "counts.open_mismatched", "format": "int", "unit": "count", "meaning": "open activities that differ"},
+    "n_done": {"step": "cv", "path": "counts.completed", "format": "int", "unit": "count", "meaning": "completed activities"},
+    "n_done_bad": {"step": "cv", "path": "counts.completed_mismatched", "format": "int", "unit": "count", "meaning": "completed activities whose early dates differ"},
+    "finish_engine": {"step": "cv", "path": "project_finish.engine", "format": "datetime", "meaning": "project finish computed by the engine"},
+    "finish_stored": {"step": "cv", "path": "project_finish.stored", "format": "datetime", "meaning": "project finish of the last F9"},
+    "rules": {"step": "cv", "path": "rules", "format": "text", "meaning": "what the engine models"},
+    "engine_version": {"step": "cv", "path": "engine_version", "format": "int", "meaning": "version of the engine's date and float rules"},
+    "opt_source": {"step": "so", "path": "db_source", "format": "text", "meaning": "where the options are stored"},
+    "lag_rule": {"step": "so", "path": "lag_rule.db_effective", "format": "text", "meaning": "calendar of the lags"}
+  },
+  "tables": {
+    "mismatched": {"step": "cv", "rows": "rows", "cap": 15, "noun": "activities that differ", "empty": "No activity differs: every stored date follows from the logic.",
+      "meaning": "Open activities first, then completed ones, by Activity ID.",
+      "columns": [
+        {"key": "activity", "head": "Activity", "path": ["task_code", "task_name"], "format": "id_name"},
+        {"key": "status", "head": "Status", "path": "status_code", "format": "text"},
+        {"key": "diff", "head": "Differences (stored, engine)", "path": "differences_text", "format": "text"},
+        {"key": "cause", "head": "Probable cause", "path": "probable_cause", "format": "text"}
+      ]},
+    "options": {"step": "so", "rows": "options", "cap": 40, "noun": "options", "empty": "No schedule option is stored for this project.",
+      "meaning": "Options stored in the database, as P6 names them.",
+      "columns": [
+        {"key": "option", "head": "Option", "path": "option", "format": "text"},
+        {"key": "value", "head": "Value", "path": "db", "format": "text", "none": "not stored"}
+      ]}
+  },
+  "checks": []
+}

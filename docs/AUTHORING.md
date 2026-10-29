@@ -58,9 +58,10 @@ skill:" paragraph after it. The template is published without leading or trailin
 stores it. P6 MCP fills every field of a template: the only braces `template.md` may hold are the skill's
 argument placeholders (write "a slot name in curly braces", never `{slot}`).
 
-The core set (`core.json`) is the set of 12 skills: weekly-update-review, schedule-quality-audit,
+The core set (`core.json`) is the set of 15 skills: weekly-update-review, schedule-quality-audit,
 update-import-safely, delay-whatif, baseline-variance, export-dashboard, list, lookahead-brief,
-progress-earned-value, float-near-critical, milestone-tracker, resource-wbs-summary. P6 MCP bundles a copy
+progress-earned-value, float-near-critical, milestone-tracker, resource-wbs-summary, and since P6 MCP
+1.10.0 update-integrity-audit, schedule-risk and logic-date-integrity. P6 MCP bundles a copy
 of it for offline first starts: after a catalog commit, run `python tools/bundle_core_skills.py <catalog>`
 in the P6 MCP checkout.
 
@@ -104,7 +105,7 @@ why the markers are `[table: name]` and not HTML comments, and why tables use `|
 ```
 
 - **steps**: `id` (a short name the slots refer to), `tool`, `args`, `why` (shown in the call list),
-  `optional`. The calls run in this order, one page each. In `args` (lists and dicts too):
+  `optional`, `when`. The calls run in this order, one page each. In `args` (lists and dicts too):
   - `"{arg}"` alone is a skill argument; an argument whose default is a whole number is passed and written
     as a number (`"add_remaining_days": "{delay_days}"` gives 10); an argument that is empty (default `""`,
     such as `baseline`) leaves its key out of the call, and the call list says so.
@@ -113,6 +114,11 @@ why the markers are `[table: name]` and not HTML comments, and why tables use `|
   - Every key must be a parameter of the tool. `dry_run`, `confirmation_token`, `confirmation_text` and
     `confirm` are refused: a write tool (`p6_import_xer`) only runs as a dry run, and a skill applies a
     change only through prose in `template.md`, after the user's explicit yes.
+  - `"when": "<arg>"`: the call runs only when that optional argument (default `""`) is given; when it is
+    empty the step is skipped like a null `{=step.path}` (its result is `{error}`, its slots are null, its
+    tables print nothing) and the call list says so. Put what uses it in `[if: slot]` blocks, so the report
+    without the argument stays the report the skill gave before (a key left out would change the call
+    instead: `other=` empty compares with the project baseline).
   - `"optional": true`: a ValueError of the call (no baseline, no previous snapshot) becomes
     `{"error": message}`; the slots of that step are null and its tables print nothing. A slot with
     path `error` holds the message (null when the call worked): use it in an `[if: ...]` block.
@@ -206,6 +212,7 @@ invented, so example reports can be published.
 ## Limits
 
 P6 MCP's own: `template.md` at most 8,000 characters after `[steps]` is expanded, five reference files of
-at most 10,000 characters each, the whole skill at most 60,000 characters as JSON. A core skill has exactly
+at most 12,000 characters each (10,000 before P6 MCP 1.10.0: a skill with a larger file needs
+`min_app_version` 1.10.0), the whole skill at most 60,000 characters as JSON. A core skill has exactly
 five reference files, so keep `spec.json` compact (one line per column) and give tables caps that keep
 `example.md` short.

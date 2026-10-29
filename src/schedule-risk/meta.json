@@ -1,0 +1,12 @@
+{
+  "name": "schedule-risk",
+  "title": "Schedule risk (Monte Carlo)",
+  "description": "Monte Carlo schedule risk of a P6 project on this server's CPM engine: finish dates at p10, p50, p80 and p90, the chance to finish on time, the p80 buffer, milestones, the activities that drive the finish most often and the assumptions (read only). Use when the user asks how likely the finish date is, for a risk analysis, a confidence level or a schedule contingency.",
+  "args": [
+    {"name": "project", "description": "Project ID as shown in P6", "default": null},
+    {"name": "iterations", "description": "Monte Carlo iterations (100 to 5000)", "default": "1000"},
+    {"name": "seed", "description": "Random seed: the same seed gives the same result", "default": "1"}
+  ],
+  "min_app_version": "1.10.0",
+  "example_args": {"project": "DEMO-SS225"}
+}

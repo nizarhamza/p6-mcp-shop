@@ -21,8 +21,9 @@
 3. sum.critical.critical = cp.total (same critical count).
 4. sum.critical.negative_float = cp.counts.negative_float.
 5. sum.baseline.used = cmp.other (the comparison used the project baseline; skip when cmp failed).
+6. sum.schedule_state.data_date = prev.schedule_state.data_date (only when previous is given).
 
-If a group differs, the database changed between the calls (an F9 or an import): run the five calls again
+If a group differs, the database changed between the calls (an F9 or an import): run the calls again
 once. If it still differs, say which group differs and do not publish the figures it concerns.
 
 ## Before sending
@@ -30,12 +31,14 @@ once. If it still differs, say which group differs and do not publish the figure
 - Every number, date and count is a slot or a table cell of reference/fields.md, copied from its field
   and written in its format. Nothing was added, subtracted, divided, counted or matched by you.
 - The tables keep the rows in the order returned and stop at their cap (critical 15, slipped 15,
-  look-ahead 20). A table whose call has more pages (next_offset not null) ends with its line "Showing
+  since the previous update 15, look-ahead 20). A table whose call has more pages (next_offset not null) ends with its line "Showing
   the first <returned> of <total> ...", both numbers copied from that call.
 - Every activity is written "Activity ID - name"; the baseline by its Project ID.
 - Day columns keep their unit: (d) days of each activity's calendar, (wd) working days of each
   activity's calendar; the finish variances name calendar days and working days of the project calendar.
 - The warning block is kept only when schedule_state.stale is true; an action only when its slot is true.
+- The section Since the previous update is kept only when previous is given (prev ran): its counts are
+  the summary fields of prev, never rows you counted.
   No other advice is added.
 - Headings and sentences are in the user's language; values, IDs, names and number formats exactly as
   formatted.

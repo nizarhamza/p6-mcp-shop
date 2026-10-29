@@ -414,6 +414,67 @@ def status_checks(o):
     return [{"check": k, "count": v} for k, v in _status_checks(o).items()]
 
 
+# ----------------------------------------------------------------- since the previous update (argument previous)
+
+def _prev_pid(o):
+    p = o.args.get("previous")
+    return o.one("SELECT proj_id FROM PROJECT WHERE proj_short_name = ?", p) if p else None
+
+
+def _crit_of(o, pid, t):
+    """Open and critical under the setting of project pid (total float at or below critical_drtn_hr_cnt)."""
+    assert _project(o, "critical_path_type", pid) == "CT_TotFloat"
+    lim = float(_project(o, "critical_drtn_hr_cnt", pid) or 0)
+    return _is_open(t) and t["total_float_hr_cnt"] is not None and t["total_float_hr_cnt"] <= lim
+
+
+def _since(o):
+    """(rows of the table in the tool's order, eroded, became, no_longer) against the previous update."""
+    qid = _prev_pid(o)
+    a = {}
+    for t in sorted(_tasks(o), key=lambda t: t["task_id"]):
+        a.setdefault(t["task_code"], t)
+    b = {}
+    for t in sorted(_tasks(o, qid), key=lambda t: t["task_id"]):
+        b.setdefault(t["task_code"], t)
+    cals = _cals(o)
+    fin = lambda t: _dt(t["act_end_date"] or t["early_end_date"])  # noqa: E731
+    tf = lambda t: None if t["total_float_hr_cnt"] is None else round(t["total_float_hr_cnt"] / t["hpd"], 2)  # noqa: E731
+    rows, eroded, became, no_longer = [], 0, 0, 0
+    for t in _tasks(o):
+        u = b.get(t["task_code"])
+        if u is None:
+            rows.append(((0, 0.0, t["task_code"], t["task_id"]), {
+                "activity": (t["task_code"], t["task_name"]), "change": "added", "var": None, "tf0": None,
+                "tf1": tf(t), "dtf": None, "crit": _crit_of(o, o.pid, t)}))
+            continue
+        if _is_open(t):
+            eroded += t["total_float_hr_cnt"] is not None and u["total_float_hr_cnt"] is not None and \
+                t["total_float_hr_cnt"] < u["total_float_hr_cnt"] - 0.05
+            became += _crit_of(o, o.pid, t) and not _crit_of(o, qid, u)
+            no_longer += _crit_of(o, qid, u) and not _crit_of(o, o.pid, t)
+        v = (fin(t) - fin(u)).total_seconds() / 86400
+        cal = cals[t["clndr_id"]]
+        rows.append(((1, -round(abs(v), 6), t["task_code"], t["task_id"]), {
+            "activity": (t["task_code"], t["task_name"]), "change": "matched",
+            "var": cal.hours(fin(u), fin(t)) / cal.hpd, "tf0": tf(u), "tf1": tf(t),
+            "dtf": None if tf(t) is None or tf(u) is None else round(tf(t) - tf(u), 2), "crit": _crit_of(o, o.pid, t)}))
+    for u in _tasks(o, qid):
+        if u["task_code"] not in a:
+            rows.append(((0, 0.0, u["task_code"], u["task_id"]), {
+                "activity": (u["task_code"], u["task_name"]), "change": "removed", "var": None, "tf0": tf(u),
+                "tf1": None, "dtf": None, "crit": None}))
+    return [r for _k, r in sorted(rows, key=lambda x: x[0])], eroded, became, no_longer
+
+
+def _since_slot(i):
+    return lambda o: _since(o)[i] if _prev_pid(o) else None
+
+
+def since_rows(o):
+    return _since(o)[0][:15] if _prev_pid(o) else []
+
+
 def _logic_mode(o):
     """The out of sequence option from PROJPROP 'scheduling' (retained logic, progress override, actual dates)."""
     text = o.one("SELECT prop_value FROM PROJPROP WHERE proj_id = ? AND prop_name = 'scheduling'", o.pid) or ""
@@ -465,6 +526,10 @@ SLOTS = {
     "la_in_progress": lambda o: _la_count(o, "in_progress"),
     "la_starting": lambda o: _la_count(o, "starting"),
     "la_finishing": lambda o: _la_count(o, "finishing"),
+    "prev_dd": lambda o: _project(o, "last_recalc_date", _prev_pid(o)) if _prev_pid(o) else None,
+    "eroded": _since_slot(1),
+    "became": _since_slot(2),
+    "no_longer": _since_slot(3),
 }
 TABLES = {"critical": critical, "slip_causes": slip_causes, "slipped": slipped, "oos": oos,
-          "status_checks": status_checks, "lookahead": lookahead}
+          "status_checks": status_checks, "lookahead": lookahead, "prev_rows": since_rows}

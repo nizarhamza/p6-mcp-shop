@@ -15,3 +15,5 @@ so do not read further pages.
 
 For this skill:
 - The variance of a milestone is its own field: never work it out from two dates.
+- contract is passed as given (Activity IDs separated by commas). Without it, call 4 is skipped and the
+  report has no contract section.

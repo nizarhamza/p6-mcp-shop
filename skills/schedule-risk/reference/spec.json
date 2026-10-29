@@ -1,0 +1,75 @@
+{
+  "spec": 1,
+  "steps": [
+    {"id": "cv", "tool": "p6_cpm_validate", "args": {"project": "{project}", "limit": 5},
+     "why": "the engine against the last F9: the simulation runs on it"},
+    {"id": "rk", "tool": "p6_schedule_risk", "args": {"project": "{project}", "iterations": "{iterations}", "seed": "{seed}", "limit": 15},
+     "why": "Monte Carlo: finish percentiles, chances, milestones, drivers, weeks"}
+  ],
+  "slots": {
+    "data_date": {"step": "rk", "path": "schedule_state.data_date", "format": "date", "meaning": "data date"},
+    "last_f9": {"step": "rk", "path": "schedule_state.last_schedule_date", "format": "datetime", "meaning": "last schedule run (F9) in P6"},
+    "stale": {"step": "rk", "path": "schedule_state.stale", "format": "flag", "meaning": "changed by this server after the last F9"},
+    "match_rate": {"step": "cv", "path": "match_rate", "format": "n2", "meaning": "share of open activities the engine reproduces (1.00 = all)"},
+    "trusted": {"step": "cv", "path": "trusted", "format": "flag", "meaning": "match rate at least 0.99"},
+    "det_finish": {"step": "rk", "path": "deterministic.finish", "format": "datetime", "meaning": "finish of the engine with unchanged durations"},
+    "det_activity": {"step": "rk", "path": ["deterministic.finish_activity", "deterministic.finish_activity_name"], "format": "id_name", "meaning": "finish activity"},
+    "stored_finish": {"step": "rk", "path": "deterministic.stored_finish", "format": "datetime", "meaning": "finish of the last F9"},
+    "p10": {"step": "rk", "path": "finish.p10", "format": "datetime", "meaning": "finish reached in 10 % of the iterations"},
+    "p50": {"step": "rk", "path": "finish.p50", "format": "datetime", "meaning": "finish reached in 50 %"},
+    "p80": {"step": "rk", "path": "finish.p80", "format": "datetime", "meaning": "finish reached in 80 %"},
+    "p90": {"step": "rk", "path": "finish.p90", "format": "datetime", "meaning": "finish reached in 90 %"},
+    "must_finish": {"step": "rk", "path": "must_finish", "format": "datetime", "none": "none", "meaning": "must finish by date"},
+    "on_time_det": {"step": "rk", "path": "on_time_probability.deterministic_pct", "format": "pct1", "unit": "%", "meaning": "iterations finishing by the deterministic finish"},
+    "on_time_must": {"step": "rk", "path": "on_time_probability.must_finish_pct", "format": "pct1", "unit": "%", "meaning": "iterations finishing by the must finish date"},
+    "p80_buffer": {"step": "rk", "path": "p80_buffer_wd", "format": "n1", "unit": "wd proj", "meaning": "deterministic finish to p80"},
+    "iterations_run": {"step": "rk", "path": "iterations", "format": "int", "unit": "count", "meaning": "iterations run"},
+    "iterations_note": {"step": "rk", "path": "iterations_note", "format": "text", "meaning": "why fewer or other iterations ran (null: as asked)"},
+    "seed_used": {"step": "rk", "path": "seed", "format": "int", "meaning": "random seed"},
+    "engine_version": {"step": "rk", "path": "engine_version", "format": "int", "meaning": "version of the engine's rules"},
+    "d_min": {"step": "rk", "path": "distribution.default.min_pct", "format": "n0", "unit": "%", "meaning": "default range: minimum, % of the remaining duration"},
+    "d_mode": {"step": "rk", "path": "distribution.default.mode_pct", "format": "n0", "unit": "%", "meaning": "most likely"},
+    "d_max": {"step": "rk", "path": "distribution.default.max_pct", "format": "n0", "unit": "%", "meaning": "maximum"},
+    "n_drawn": {"step": "rk", "path": "distribution.counts.drawn", "format": "int", "unit": "count", "meaning": "activities whose remaining duration is drawn"},
+    "caveat": {"step": "rk", "path": "caveat", "format": "text", "meaning": "what the estimate leaves out"}
+  },
+  "tables": {
+    "milestones": {"step": "rk", "rows": "milestones", "cap": 10, "noun": "milestones", "empty": "No milestone.",
+      "meaning": "The finish activity, then the open constrained activities.",
+      "columns": [
+        {"key": "activity", "head": "Activity", "path": ["task_code", "task_name"], "format": "id_name"},
+        {"key": "det", "head": "Deterministic", "path": "deterministic", "format": "datetime"},
+        {"key": "p50", "head": "P50", "path": "p50", "format": "datetime"},
+        {"key": "p80", "head": "P80", "path": "p80", "format": "datetime"},
+        {"key": "p90", "head": "P90", "path": "p90", "format": "datetime"},
+        {"key": "on_time", "head": "On time %", "path": "on_time_pct", "format": "pct1", "unit": "%"},
+        {"key": "cdate", "head": "Constraint date", "path": "constraint_date", "format": "datetime", "none": "none"},
+        {"key": "by_cstr", "head": "By constraint %", "path": "by_constraint_pct", "format": "pct1", "unit": "%"},
+        {"key": "buffer", "head": "P80 buffer (wd)", "path": "p80_buffer_wd", "format": "n1", "unit": "wd"}
+      ]},
+    "drivers": {"step": "rk", "rows": "rows", "cap": 15, "noun": "activities", "empty": "No activity was critical.",
+      "meaning": "Open activities by share of iterations on the critical path.",
+      "columns": [
+        {"key": "activity", "head": "Activity", "path": ["task_code", "task_name"], "format": "id_name"},
+        {"key": "crit", "head": "Critical %", "path": "criticality_pct", "format": "pct1", "unit": "%"},
+        {"key": "det", "head": "On today's path", "path": "on_deterministic_path", "format": "flag"},
+        {"key": "tf", "head": "Total float (d)", "path": "total_float_d", "format": "n1", "unit": "d"},
+        {"key": "rem", "head": "Remaining (d)", "path": "rem_dur_d", "format": "n1", "unit": "d"},
+        {"key": "min", "head": "Min (d)", "path": "min_d", "format": "n1", "unit": "d"},
+        {"key": "max", "head": "Max (d)", "path": "max_d", "format": "n1", "unit": "d"}
+      ]},
+    "weeks": {"step": "rk", "rows": "histogram", "cap": 20, "noun": "weeks", "empty": "No week.",
+      "meaning": "Project finish dates per week.",
+      "columns": [
+        {"key": "from", "head": "Week from", "path": "week_start", "format": "date"},
+        {"key": "to", "head": "To", "path": "week_end", "format": "date"},
+        {"key": "n", "head": "Iterations", "path": "count", "format": "int", "unit": "count"},
+        {"key": "pct", "head": "%", "path": "pct", "format": "pct1", "unit": "%"},
+        {"key": "cum", "head": "Cumulative %", "path": "cum_pct", "format": "pct1", "unit": "%"}
+      ]}
+  },
+  "checks": [
+    {"equal": ["cv.schedule_state.data_date", "rk.schedule_state.data_date"], "text": "same data date"},
+    {"equal": ["cv.match_rate", "rk.engine.match_rate"], "text": "same engine match rate"}
+  ]
+}

@@ -1,6 +1,6 @@
 ---
 name: p6-weekly-update-review
-description: "Weekly schedule update review of a P6 project: progress, finish dates, critical path, slippage against the baseline, progress issues and a critical look-ahead, with fixed actions (read only). Use when the user asks for a weekly update review, a status report or how a project is progressing."
+description: "Weekly schedule update review of a P6 project: progress, finish dates, critical path, slippage against the baseline, changes since the previous update when given, progress issues and a critical look-ahead, with fixed actions (read only). Use when the user asks for a weekly update review, a status report or how a project is progressing."
 ---
 <!-- p6mcp skill: written by P6 MCP Settings, overwritten on the next install -->
 <!-- p6mcp files: ["reference/report.md", "reference/checks.md", "reference/spec.json", "reference/fields.md", "reference/example.md"] -->
@@ -10,8 +10,9 @@ description: "Weekly schedule update review of a P6 project: progress, finish da
 Inputs (take them from the user's message; ask for a required one that is missing, use the default when an optional one is empty):
 - project: Project ID as shown in P6
 - weeks: Weeks of the critical look-ahead window from the data date (default 3)
+- previous: Project ID of the previous update (empty: no comparison with it) (may be empty)
 
-Weekly update review of project <project>: progress, finish dates, critical path, slippage against the baseline, progress issues, the critical activities of the next <weeks> weeks and the actions that apply. Read only: nothing is written to the database.
+Weekly update review of project <project>: progress, finish dates, critical path, slippage against the baseline, changes since the previous update when one is given, progress issues, the critical activities of the next <weeks> weeks and the actions that apply. Read only: nothing is written to the database.
 
 This skill gives you every figure: you copy fields, you never compute them.
 - reference/spec.json: the calls, the slots (each a field of one call) and the tables.
@@ -22,11 +23,13 @@ This skill gives you every figure: you copy fields, you never compute them.
 
 Calls, in this order. Each call is one page: the report shows that page and says when there are more,
 so do not read further pages.
-1. sum = p6_project_summary(project="<project>"): data date, percent complete, finish dates, baseline.
-2. prog = p6_progress_check(project="<project>", sample_size=5): out of sequence links, status checks.
-3. cp = p6_critical_path(project="<project>", limit=15): critical open activities.
-4. la = p6_lookahead(project="<project>", weeks=<weeks>, critical_only=true, limit=20): critical activities of the look-ahead window.
-5. cmp = p6_compare_projects(project="<project>", section="activities", min_variance_days=5, limit=15): slippage against the project baseline. If this call returns an error, keep its message as cmp.error (its other fields are null).
+1. sum = p6_project_summary(project="<project>"): progress, finish, baseline.
+2. prog = p6_progress_check(project="<project>", sample_size=5): out of sequence, status checks.
+3. cp = p6_critical_path(project="<project>", limit=15): critical activities.
+4. la = p6_lookahead(project="<project>", weeks=<weeks>, critical_only=true, limit=20): critical look-ahead.
+5. cmp = p6_compare_projects(project="<project>", section="activities", min_variance_days=5, limit=15): slippage against the baseline. If this call returns an error, keep its message as cmp.error (its other fields are null).
+6. prev = p6_compare_projects(project="<project>", other="<previous>", section="activities", min_variance_days=0, limit=15): changes since the previous update. Make this call only when <previous> is given; when it is empty, skip it (its fields are null).
+Leave out an argument whose value is empty (previous).
 
 Write the report:
 1. Start from reference/report.md. Replace each slot placeholder (a slot name in curly braces) by the field
@@ -57,6 +60,8 @@ Write the report:
 
 For this skill:
 - The actions are the fixed sentences of report.md only: add no other advice.
+- previous is the Project ID of the previous update (a project or a saved baseline). Without it, call 6 is
+  skipped and the report has no section Since the previous update.
 
 Reference files in this skill's folder (read the ones the steps need):
 - reference/report.md

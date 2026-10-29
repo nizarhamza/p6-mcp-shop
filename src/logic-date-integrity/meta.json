@@ -1,0 +1,10 @@
+{
+  "name": "logic-date-integrity",
+  "title": "Logic and date integrity",
+  "description": "Checks that the stored dates of a P6 project follow from its logic, durations and schedule options: this server's CPM engine against the last F9, the activities whose dates differ with their probable cause, and the schedule options in force (read only). Use before pressing F9 on an imported update, or when the user asks whether the submitted dates can be trusted.",
+  "args": [
+    {"name": "project", "description": "Project ID as shown in P6", "default": null}
+  ],
+  "min_app_version": "1.10.0",
+  "example_args": {"project": "DEMO-SS225"}
+}

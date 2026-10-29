@@ -1,7 +1,7 @@
 """Harness features the core skills rely on (docs/AUTHORING.md): empty arguments left out (H1), nested
 arguments (H2), {work} (H3), optional steps (H4), dict tables (H5), scalar rows (H6), {=step.path} arguments
 (H7), skills without a project (H8), write tools as dry runs only (H9), no state between skills (H10), [if:]
-on numbers (H11)."""
+on numbers (H11), steps made only when an optional argument is given (H12)."""
 
 from __future__ import annotations
 
@@ -207,3 +207,28 @@ def test_h10_no_state_left_between_skills(demo):
     golden.reset_outputs()
     assert not os.path.exists(health) and not os.path.exists(os.path.join(demo["work"], "old.xlsx"))
     assert demo["keep"] <= set(os.listdir(demo["work"]))
+
+
+def test_h12_a_step_only_when_its_argument_is_given():
+    meta = {"name": "x", "title": "X", "args": [{"name": "project", "description": "P"},
+                                                 {"name": "previous", "description": "Q", "default": ""}]}
+    spec = {"spec": 1, "steps": [{"id": "a", "tool": "t_a", "args": {"project": "{project}"}},
+                                 {"id": "prev", "tool": "t_cmp", "args": {"project": "{project}",
+                                                                          "other": "{previous}"}, "when": "previous"}],
+            "slots": {"n": {"step": "prev", "path": "summary.n", "format": "int", "meaning": "m"}}}
+    report = "[if: n]\nSince {previous}: {n}.\n[end if]\nEnd.\n"
+    s = skill(spec, report, meta)
+    assert golden.problems(s) == []
+    call, calls = fake({"t_a": {}, "t_cmp": {"summary": {"n": 4}}})
+    res = golden.run_steps(spec, {"project": "P", "previous": ""}, call)
+    assert [c[0] for c in calls] == ["t_a"] and res["prev"] == {"error": "skipped: previous is empty", "_failed": True}
+    assert golden.render(s, res, {"project": "P", "previous": ""}) == "End.\n"  # the report without the argument
+    res = golden.run_steps(spec, {"project": "P", "previous": "P0"}, call)
+    assert calls[-1] == ("t_cmp", {"project": "P", "other": "P0"})
+    assert golden.render(s, res, {"project": "P", "previous": "P0"}) == "Since P0: 4.\nEnd.\n"
+    text = golden.steps_text(spec, set(), golden.optional_args(meta))
+    assert "Make this call only when <previous> is given; when it is empty, skip it (its fields are null)" in text
+    bad = copy.deepcopy(spec)
+    bad["steps"][1]["when"] = "project"
+    assert "step prev: when must name an optional argument (default \"\") of the skill" in golden.problems(
+        skill(bad, report, meta))

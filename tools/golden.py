@@ -13,9 +13,10 @@ settings. Write tools only run as dry runs (the database file stays byte-identic
     python tools/golden.py check            # every example.md equal to its rendering (exit 1 otherwise)
 
 spec.json (the format is documented in docs/AUTHORING.md):
-    steps   [{id, tool, args, why, optional}]: args (nested lists and dicts too) may hold {arg} (a skill
+    steps   [{id, tool, args, why, optional, when}]: args (nested lists and dicts too) may hold {arg} (a skill
             argument; an empty one is left out) and {=step.path} (a field of an earlier result; a null one
-            skips the step); optional: an error of the call is kept as {error}, its slots are null
+            skips the step); optional: an error of the call is kept as {error}, its slots are null; when:
+            an optional argument (default "") that must be given, else the step is skipped
     slots   {name: {step, path, format, unit, none, meaning}}: path = dotted keys (and list indexes)
     tables  {name: {step, rows, cap, noun, empty, filter, totals, meaning, columns [{key, head, path, format,
             unit, none, in_totals}]}}: rows names a list (or a dict: one row per item, its key in _key, a
@@ -101,7 +102,8 @@ WRITE_RULES = """Write the report:
    exactly as formatted.
 7. Run reference/checks.md before answering. Report a failed cross-check, never hide it; say nothing about
    the checks that pass."""
-STEP_KEYS, SLOT_KEYS = {"id", "tool", "args", "why", "optional"}, {"step", "path", "format", "unit", "none", "meaning"}
+STEP_KEYS = {"id", "tool", "args", "why", "optional", "when"}
+SLOT_KEYS = {"step", "path", "format", "unit", "none", "meaning"}
 TABLE_KEYS = {"step", "rows", "cap", "noun", "empty", "filter", "totals", "columns", "meaning"}
 COLUMN_KEYS = {"key", "head", "path", "format", "unit", "none", "in_totals"}
 # never shown: the two-step write flow's token (a dry run only shows the plan); never passed: what applies it
@@ -194,6 +196,8 @@ def problems(skill: dict, tool_params: dict | None = None) -> list[str]:
                          if k not in tool_params[st["tool"]]]
         errs += [f"step {st['id']}: {k} is never passed (write tools run as dry runs only)" for k in st["args"]
                  if k in APPLY_ARGS]
+        if "when" in st and st["when"] not in optional_args(meta):
+            errs.append(f"step {st['id']}: when must name an optional argument (default \"\") of the skill")
         for text in _strings(st["args"]):
             for r in REF_ONLY.finditer(text):
                 if r.group(1) not in steps:
@@ -422,9 +426,13 @@ def call_args(step: dict, args: dict, numeric: set = frozenset(), results: dict 
 
 def run_steps(spec: dict, args: dict, call, numeric: set = frozenset()) -> dict:
     """{step id: tool result}; call(tool, **kwargs) runs one tool. A step whose {=step.path} argument is
-    null is skipped, and the ValueError of an optional step is kept: both give {error, _failed: true}."""
+    null, or whose when argument is empty, is skipped, and the ValueError of an optional step is kept: each
+    gives {error, _failed: true}."""
     results = {}
     for st in spec["steps"]:
+        if st.get("when") and args.get(st["when"]) in (None, ""):  # an optional call the user did not ask for
+            results[st["id"]] = {"error": f"skipped: {st['when']} is empty", "_failed": True}
+            continue
         try:
             kw = call_args(st, args, numeric, results)
         except _Skip as e:
@@ -602,6 +610,9 @@ def steps_text(spec: dict, numeric: set = frozenset(), optional: set = frozenset
         for step, path in refs:
             line += (f". <{step}.{path}> is the field {path} of the result of {step}: when it is null or missing, "
                      "skip this call (its fields are null)")
+        if st.get("when"):
+            line += (f". Make this call only when <{st['when']}> is given; when it is empty, skip it (its fields are "
+                     "null)")
         if st.get("optional"):
             line += f". If this call returns an error, keep its message as {st['id']}.error (its other fields are null)"
         lines.append(line + ("" if line.endswith(".") else "."))

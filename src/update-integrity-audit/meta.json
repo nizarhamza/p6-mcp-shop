@@ -1,0 +1,11 @@
+{
+  "name": "update-integrity-audit",
+  "title": "Update integrity audit",
+  "description": "Integrity audit of a P6 schedule update against the previous update: open ends tied to the finish, constraints removed to clear negative float, must finish date moved, actual dates rewritten, durations cut, critical links removed, link types, lags, options and calendars changed, activities deleted, data date, with the questions to raise with the contractor (read only). Use when the user asks to review or audit a submitted update, or what changed in it that needs explaining.",
+  "args": [
+    {"name": "project", "description": "Project ID of the update to review", "default": null},
+    {"name": "previous", "description": "Project ID of the previous update (or a baseline saved from it)", "default": null}
+  ],
+  "min_app_version": "1.10.0",
+  "example_args": {"project": "DEMO-SS225", "previous": "DEMO-SS225_PREV"}
+}

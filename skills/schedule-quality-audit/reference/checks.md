@@ -14,10 +14,14 @@
   one, and the block says all there is to say. Any other tr.error: repeat it after that block. Never work out
   a trend yourself.
 - A check whose pass is null is written "not evaluated", never pass or fail.
+- cv.trusted is false: keep the warning that the engine does not reproduce the last F9 (the critical path test
+  relies on it).
+- fo_neg and fo_high run only when hc gives a worst activity (negative or high float); a skipped one leaves its
+  explanation out. Each explanation is copied as returned, under its fix.
 
 ## Cross-checks (each group must be equal)
 
-1. hc, dg, rd and fa schedule_state.data_date (same data date).
+1. cv, hc, dg, rd and fa schedule_state.data_date (same data date).
 2. hc.open_incomplete_activities = fa.scope.activities.
 3. hc.checks.negative_float.count = fa.stats.negative_tf.
 4. hc.checks.logic.dangling.open_start.count = dg.counts.start.
@@ -31,8 +35,9 @@ concerns.
 
 - Every number, date and count is a slot or a table cell of reference/fields.md, copied from its field
   and written in its format. Nothing was added, subtracted, divided, counted or matched by you.
-- The DCMA table has one row per key of hc.checks, in the order returned, with "none" for a missing
-  threshold and "not evaluated" for a null pass.
+- The DCMA table has one row per key of hc.checks, in the order returned (logic_density included), with
+  "none" for a missing threshold and "not evaluated" for a null pass. The weighted table has one row per key of
+  hc.weighted_score.checks; the points and the grade are copied, never worked out from the rows.
 - The paged tables (dangling 15, redundant 15) stop at their cap; when the call has more pages
   (next_offset not null) the table ends with "Showing the first <returned> of <total> ...", both numbers
   copied from that call.

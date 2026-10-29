@@ -21,6 +21,7 @@
 5. ms.counts.open_late = late.counts.late.
 6. ms.counts.critical = late.counts.critical.
 7. late.rows.0.total_float_d = drv.target.total_float_d (skip when drv was skipped).
+8. ms.schedule_state.data_date = ct.schedule_state.data_date (only when contract is given).
 
 If a pair differs, the database changed between the calls: run the three calls again once. If it still
 differs, say which pair differs and do not publish the figures it concerns.
@@ -36,5 +37,8 @@ differs, say which pair differs and do not publish the figures it concerns.
   ends with its line "Showing the first <returned> of <total> ...", both numbers copied from that call.
 - Every milestone and activity is written "Activity ID - name".
 - The driving path section is kept only when drv ran (target_code not null).
+- The contract milestones section is kept only when contract is given (ct ran), with at most 20 rows in
+  the order returned; its Float comes from cells are copied as returned. The Not found sentence lists
+  ct.not_found as returned.
 - Headings and sentences are in the user's language; values, IDs, names and number formats exactly as
   formatted.

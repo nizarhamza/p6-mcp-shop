@@ -72,6 +72,30 @@ Activities added or removed, then those whose finish moved by 5 calendar days or
 
 Showing the first 15 of 174 activities.
 
+## Since the previous update
+
+Compared with DEMO-SS225_PREV (data date 2026-10-19): open activities with less total float 1; open activities that became critical 0; no longer critical 5 (each project's own definition of critical). Added and removed activities first, then the largest finish changes in calendar days.
+
+| Activity | Change | Finish moved (wd) | Float before (d) | Float now (d) | Float change (d) | Critical now |
+|-|-|-|-|-|-|-|
+| CON-SITE-1050 - Temporary site facilities | removed | n/a | 125.0 | n/a | n/a | n/a |
+| COM-ENR-1050 - Trial operation | matched | -10.0 | -56.0 | -36.0 | 20.0 | yes |
+| COM-HO-1030 - Provisional acceptance inspection | matched | -10.0 | -56.0 | -36.0 | 20.0 | yes |
+| MS-1090 - Provisional acceptance | matched | -10.0 | -56.0 | -36.0 | 20.0 | yes |
+| MS-1100 - Project completion | matched | -10.0 | -56.0 | -36.0 | 20.0 | yes |
+| CON-SEC-1060 - Perimeter lighting and CCTV | matched | -5.0 | 96.0 | 121.0 | 25.0 | no |
+| CON-HV-1000 - Gantry steel structures and busbars | matched | 4.0 | 115.0 | 111.0 | -4.0 | no |
+| PRC-MVS-1040 - MV switchgear - manufacturing | matched | 1.0 | n/a | n/a | n/a | no |
+| COM-ENR-1000 - Energization procedure approval | matched | 0.0 | -56.0 | -36.0 | 20.0 | yes |
+| COM-ENR-1010 - Back-energization of the 225 kV GIS | matched | 0.0 | -56.0 | -36.0 | 20.0 | yes |
+| COM-ENR-1020 - Energization of transformer TR1 | matched | 0.0 | -56.0 | -36.0 | 20.0 | yes |
+| COM-ENR-1030 - Energization of transformer TR2 | matched | 0.0 | -56.0 | -36.0 | 20.0 | yes |
+| COM-ENR-1040 - On-load tests and protection stability checks | matched | 0.0 | -56.0 | -36.0 | 20.0 | yes |
+| COM-HO-1000 - Punch list closure | matched | 0.0 | -46.0 | -36.0 | 10.0 | yes |
+| COM-HO-1010 - As-built documentation | matched | 0.0 | -46.0 | -36.0 | 10.0 | yes |
+
+Showing the first 15 of 215 activities.
+
 ## Progress issues
 
 Out of sequence links: 0. Out of sequence option of F9: retained logic.

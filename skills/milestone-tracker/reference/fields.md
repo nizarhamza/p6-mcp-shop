@@ -7,7 +7,8 @@ Generated from reference/spec.json by the catalog build. Each slot of reference/
 1. ms = p6_milestones(project="{project}", baseline="{baseline}", limit=30): every milestone by date with its baseline date and variance, counts, baseline, must finish date.
 2. late = p6_milestones(project="{project}", baseline="{baseline}", open_only=true, order="variance", limit=10): open milestones, largest variance in working days first.
 3. drv = p6_driving_path(project="{project}", target=<late.rows.0.task_code>, limit=15): driving predecessors of the open milestone with the largest variance. <late.rows.0.task_code> is the field rows.0.task_code of the result of late: when it is null or missing, skip this call (its fields are null).
-Leave out an argument whose value is empty (baseline).
+4. ct = p6_milestones(project="{project}", baseline="{baseline}", codes="{contract}", limit=20): the contract milestones given. Make this call only when <contract> is given; when it is empty, skip it (its fields are null).
+Leave out an argument whose value is empty (baseline, contract).
 
 ## Formats
 
@@ -29,6 +30,7 @@ Leave out an argument whose value is empty (baseline).
 
 - {project}: Project ID as shown in P6, as given
 - {baseline}: Project ID of the baseline to compare with (empty: the project baseline set in P6), as given
+- {contract}: Activity IDs of the contract milestones, separated by commas (empty: no contract table), as given
 
 ## Units
 
@@ -60,6 +62,8 @@ Leave out an argument whose value is empty (baseline).
 | target_code | drv.target.task_code |  | text | n/a | Activity ID of the open milestone with the largest variance (null: no open milestone) |
 | target_name | drv.target.task_name |  | text | n/a | its name |
 | target_tf | drv.target.total_float_d | d | n1 | n/a | its total float |
+| ct_def | ct.critical_definition |  | text | n/a | set when ct ran |
+| ct_not_found | ct.not_found |  | list | n/a | contract IDs not found |
 
 ## Table all
 
@@ -122,6 +126,26 @@ No rows: write 'No driving predecessor.' instead of the table (nothing when the 
 | Link | type |  | text | n/a |  |
 | Lag (d) | lag_d | d | n1 | n/a |  |
 
+## Table contract
+
+Contract milestones by date.
+
+Rows: ct.rows, in the order returned, at most 20.
+When ct.next_offset is not null, add the line: Showing the first <returned> of <total> contract milestones. (returned and total of ct).
+No rows: write 'No contract milestone found.' instead of the table (nothing when the call failed).
+
+| Column | Field (row path) | Unit | Format | None | In totals row |
+|-|-|-|-|-|-|
+| Milestone | task_code + task_name |  | id_name | n/a |  |
+| Constraint | cstr_label |  | text | none |  |
+| Constraint date | cstr_date |  | date | n/a |  |
+| Hard | hard_constraint |  | flag | n/a |  |
+| Predecessors | predecessor_count | count | int | n/a |  |
+| Forecast | date |  | date | n/a |  |
+| Forecast - constraint (wd) | vs_constraint_wd | wd | n1 | n/a |  |
+| Total float (d) | total_float_d | d | n1 | n/a |  |
+| Float comes from | float_origin_explanation |  | text | n/a |  |
+
 ## Table roots
 
 What starts each driving chain: data_date, constraint, actual_date (progress), open_start (no predecessor), completed_predecessor, unexplained.
@@ -138,10 +162,11 @@ No rows: write 'No chain start found.' instead of the table (nothing when the ca
 
 ## Cross-checks (equal values)
 
-- same data date in both milestone calls: ms.schedule_state.data_date = late.schedule_state.data_date
-- same data date in the milestones and the driving path: ms.schedule_state.data_date = drv.data_date
-- same must finish date in both milestone calls: ms.must_finish = late.must_finish
+- same data date: ms.schedule_state.data_date = late.schedule_state.data_date
+- same data date (driving path): ms.schedule_state.data_date = drv.data_date
+- same must finish date: ms.must_finish = late.must_finish
 - open milestones = milestones of the open list: ms.counts.open = late.counts.milestones
-- open late milestones = late milestones of the open list: ms.counts.open_late = late.counts.late
-- same critical milestones in both calls: ms.counts.critical = late.counts.critical
+- same open late milestones: ms.counts.open_late = late.counts.late
+- same critical milestones: ms.counts.critical = late.counts.critical
 - same total float of the first open milestone: late.rows.0.total_float_d = drv.target.total_float_d
+- same data date (contract): ms.schedule_state.data_date = ct.schedule_state.data_date

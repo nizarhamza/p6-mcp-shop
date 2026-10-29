@@ -1,11 +1,12 @@
 {
   "name": "milestone-tracker",
   "title": "Milestone tracker",
-  "description": "Milestones of a P6 project against its baseline: dates, variance in working and calendar days, float and critical flags, the open milestones most late and what drives the first one (the database is never written). Use when the user asks about milestones, key dates or how the milestones compare with the baseline.",
+  "description": "Milestones of a P6 project against its baseline: dates, variance in working and calendar days, float and critical flags, the open milestones most late and what drives the first one; with contract milestones given, their constraints, predecessors and float origin (the database is never written). Use when the user asks about milestones, key dates, contract milestones or how the milestones compare with the baseline.",
   "args": [
     {"name": "project", "description": "Project ID as shown in P6", "default": null},
-    {"name": "baseline", "description": "Project ID of the baseline to compare with (empty: the project baseline set in P6)", "default": ""}
+    {"name": "baseline", "description": "Project ID of the baseline to compare with (empty: the project baseline set in P6)", "default": ""},
+    {"name": "contract", "description": "Activity IDs of the contract milestones, separated by commas (empty: no contract table)", "default": ""}
   ],
-  "min_app_version": "1.9.0",
-  "example_args": {"project": "DEMO-SS225"}
+  "min_app_version": "1.10.0",
+  "example_args": {"project": "DEMO-SS225", "contract": "MS-1080,MS-1090,MS-1100,MS-1999"}
 }

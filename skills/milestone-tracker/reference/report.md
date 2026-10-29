@@ -44,3 +44,15 @@ Each driving chain starts from:
 [if not: target_code]
 There is no open milestone, so there is no driving path to show.
 [end if]
+
+[if: ct_def]
+## Contract milestones
+
+The contract milestones given, with their constraint, how many predecessors drive them, their forecast against the constraint date in working days of their calendar (positive = later) and where their total float comes from.
+
+[table: contract]
+
+[end if]
+[if: ct_not_found]
+Not found in {project}: {ct_not_found}. Check these Activity IDs.
+[end if]

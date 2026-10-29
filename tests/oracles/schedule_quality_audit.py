@@ -34,6 +34,7 @@ CHAIN = 10  # links per FS chain of a transitive link
 # DCMA defaults: check -> (threshold, rule, P6 schedule_check target key, limit key, enable flag key)
 DCMA = {
     "logic": (5, "max", "logic_target", None, "check_logic"),
+    "logic_density": (1.5, "ratio", None, None, None),  # links per open activity (no P6 setting)
     "leads": (0, "max", "negative_lag_target", None, "check_negative_lag"),
     "lags": (5, "max", "lag_target", None, "check_lag"),
     "long_lags": (None, "max", "long_lags_target", "long_lags_constraint", "check_long_lags"),
@@ -555,6 +556,8 @@ def _dcma_load(o) -> dict:
     out["long_lags"] = _row(sum(x["lag"] > (ll[1] if ll[0] == "h" else ll[1] * _lag_hpd(o, t[x["pred"]], t[x["succ"]]))
                                 for x in olinks), n, thr["long_lags"], rule("long_lags"))
     out["fs_links"] = _row(sum(x["type"] == "PR_FS" for x in olinks), n, thr["fs_links"], rule("fs_links"))
+    out["logic_density"] = _row(n, len(opened), thr["logic_density"], "ratio", n / len(opened) if opened else None)
+    out["logic_density"]["pct"] = None  # a ratio: no share
     out["hard_constraints"] = _row(sum(d.get("cstr_type") in HARD or d.get("cstr_type2") in HARD for d in opened),
                                    len(opened), thr["hard_constraints"], rule("hard_constraints"))
     out["high_float"] = _row(sum(_over(lim["high_float"], d["total_float_hr_cnt"], d["hpd"]) for d in opened),
@@ -607,16 +610,16 @@ def _dcma_load(o) -> dict:
                    "pass": None if thr["cpli"] is None or cpli is None else cpli >= thr["cpli"]}
     out["bei"] = bei
     out["key_dates"] = _key_dates(o)
-    return out
+    return {k: out[k] for k in [*DCMA, "key_dates"]}  # the order of p6_health_check
 
 
 def dcma(o):
     return [{"check": k, **{c: v[c] for c in ("count", "denominator", "pct", "value", "threshold", "pass")}}
-            for k, v in _dcma(o).items()][:16]
+            for k, v in _dcma(o).items()][:17]
 
 
 def _score(o):
-    passes = [v["pass"] for v in _dcma(o).values()]
+    passes = [v["pass"] for k, v in _dcma(o).items() if k not in UNSCORED]
     if any(isinstance(p, Unchecked) for p in passes):  # the critical path test was not recomputed
         why = "score: counts include the critical path test, whose pass is not recomputed here"
         return {k: Unchecked(why) for k in ("passed", "failed", "not_evaluated", "evaluated", "pct")}
@@ -652,7 +655,7 @@ def trend(o):
         ca, cb = a.get(k, {}).get("count"), b.get(k, {}).get("count")
         rows.append({"check": k, "before": ca, "after": cb, "delta": None if ca is None or cb is None else cb - ca,
                      "pass": b.get(k, {}).get("pass")})
-    return rows[:16]
+    return rows[:17]
 
 
 # ----------------------------------------------------------------- dangling ends
@@ -876,6 +879,72 @@ def _pick_field(o, field):
     return None if pick is None else pick[field]
 
 
+UNSCORED = ("logic_density",)  # in checks, outside score and summary
+WEIGHTS = {"logic_density": 20, "logic": 20, "critical_path_test": 15, "negative_float": 15, "high_float": 10,
+           "hard_constraints": 10, "high_duration": 5, "leads": 5, "lags": 5, "fs_links": 5}
+GRADES = (("A", 90), ("B", 80), ("C", 70), ("D", 55))
+
+
+def _status(name, c) -> str:
+    """pass, warn (failed inside the band: at most up to 2 x the threshold, at least down to 0.9 x), fail or
+    not_evaluated; no band for a zero or missing threshold."""
+    if c["pass"] is None:
+        return "not_evaluated"
+    if c["pass"]:
+        return "pass"
+    thr, r = c["threshold"], DCMA[name][1]
+    if not thr or r is None:
+        return "fail"
+    if r == "ratio":
+        return "warn" if c["value"] is not None and c["value"] >= 0.9 * thr else "fail"
+    return "warn" if (c["pct"] <= 2 * thr if r == "max" else c["pct"] >= 0.9 * thr) else "fail"
+
+
+def _weighted(o) -> dict:
+    d = _dcma(o)
+    if isinstance(d["critical_path_test"]["pass"], Unchecked):
+        why = "weighted score: the critical path test's pass is not recomputed here"
+        return {"rows": Unchecked(why), "points": Unchecked(why), "grade": Unchecked(why)}
+    rows, earned, top = [], 0.0, 0
+    for k, w in WEIGHTS.items():
+        st = _status(k, d[k])
+        e = None if st == "not_evaluated" else w * {"pass": 1.0, "warn": 0.5, "fail": 0.0}[st]
+        if e is not None:
+            earned, top = earned + e, top + w
+        rows.append({"check": k, "weight": w, "status": st, "earned": e})
+    points = round(100 * earned / top, 1) if top else None
+    grade = None if points is None else next((g for g, lo in GRADES if points >= lo), "F")
+    return {"rows": rows, "points": points, "grade": grade}
+
+
+def _worst(o, high: bool):
+    """The open activity with the highest float above the high float limit (high) or the lowest negative float,
+    by float in days, then Activity ID."""
+    lim = _settings(o)["limit"]["high_float"]
+    cand = [d for d in _mine(o) if _open(d) and d["total_float_hr_cnt"] is not None
+            and (_over(lim, d["total_float_hr_cnt"], d["hpd"]) if high else d["total_float_hr_cnt"] < 0)]
+    if not cand:
+        return None
+    return sorted(cand, key=lambda d: ((-1 if high else 1) * d["total_float_hr_cnt"] / d["hpd"], d["task_code"],
+                                       d["task_id"]))[0]
+
+
+def _expl(o, high: bool):
+    from oracles.milestone_tracker import WORDS, network
+    from oracles.update_integrity_audit import _sources
+    d = _worst(o, high)
+    if d is None:
+        return None
+    kinds = sorted({k for k, _s in _sources(network(o), d["task_code"])})
+    tf = round(d["total_float_hr_cnt"] / d["hpd"], 2)
+    return Contains(f"Total float {tf} d of {d['task_code']} comes from", *(WORDS[k] for k in kinds))
+
+
+def _engine(o):
+    from oracles.logic_date_integrity import engine
+    return engine(o)
+
+
 SLOTS = {
     "data_date": lambda o: _prj(o)["last_recalc_date"],
     "last_f9": lambda o: _prj(o)["last_schedule_date"],
@@ -901,5 +970,14 @@ SLOTS = {
     "tf_negative": lambda o: sum(v < 0 for v in _tf_days(o)),
     "critical": _critical,
     "critical_definition": _crit_definition,
+    "match_rate": lambda o: round(1 - _engine(o)["bad_open"] / _engine(o)["open"], 4),
+    "trusted": lambda o: _engine(o)["bad_open"] / _engine(o)["open"] <= 0.01,
+    "w_points": lambda o: _weighted(o)["points"],
+    "w_grade": lambda o: _weighted(o)["grade"],
+    "logic_count": lambda o: _dcma(o)["logic"]["count"],
+    "fs_pass": lambda o: _dcma(o)["fs_links"]["pass"],
+    "neg_expl": lambda o: _expl(o, False),
+    "high_expl": lambda o: _expl(o, True),
 }
-TABLES = {"dcma": dcma, "trend": trend, "dangling": dangling, "redundant": redundant, "float": float_table}
+TABLES = {"dcma": dcma, "trend": trend, "dangling": dangling, "redundant": redundant, "float": float_table,
+          "weighted": lambda o: _weighted(o)["rows"]}

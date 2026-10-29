@@ -495,6 +495,56 @@ def _count(key):
     return lambda o: _counts(milestones(o))[key]
 
 
+HARD = ("CS_MSO", "CS_MEO", "CS_MSOB", "CS_MEOB", "CS_MANDSTART", "CS_MANDFIN")  # DCMA hard constraints
+CSTR_LABELS = {"CS_MSO": "Start On", "CS_MSOA": "Start On or After", "CS_MSOB": "Start On or Before",
+               "CS_MEO": "Finish On", "CS_MEOA": "Finish On or After", "CS_MEOB": "Finish On or Before",
+               "CS_MANDSTART": "Mandatory Start", "CS_MANDFIN": "Mandatory Finish", "CS_ALAP": "As Late As Possible"}
+WORDS = {"activity_constraint": "a constraint", "project_must_finish": "the project must finish date",
+         "open_end": "the project finish (open end)", "unexplained": "an unexplained source"}
+
+
+def _wanted(o) -> list:
+    return list(dict.fromkeys(c.strip() for c in (o.args.get("contract") or "").split(",") if c.strip()))
+
+
+def contract(o) -> list:
+    """The contract milestones given (any activity type), by their one date: constraint, hard flag, predecessor
+    links, the date minus the constraint date in working days of its calendar, total float and the source of
+    its float (late gaps traced on the stored F9)."""
+    from oracles.update_integrity_audit import _sources
+    if not _wanted(o):
+        return []
+    net = network(o)
+    rows = []
+    for code in _wanted(o):
+        if code not in net["code"]:
+            continue
+        n = net["code"][code]
+        a = net["acts"][n]
+        d = _one(a)[0]
+        cd = a["cstr_date"] if a["cstr_type"] else None
+        done = a["status_code"] == "TK_Complete"
+        tf = None if done else days(a["total_float_hr_cnt"], a)
+        origin = None
+        if not done and a["late_end_date"] is not None:
+            kinds = sorted({k for k, _s in _sources(net, code)})
+            origin = Contains(f"Total float {round(tf, 2)} d of {code} comes from", *(WORDS[k] for k in kinds))
+        rows.append({"activity": (code, a["task_name"]), "cstr": CSTR_LABELS.get(a["cstr_type"]), "cdate": text(cd),
+                     "hard": bool({a["cstr_type"], a.get("cstr_type2")} & set(HARD)),
+                     "preds": len(net["preds"].get(n, [])), "date": text(d),
+                     "vs_c": None if not (d and cd) else a["cal"].work_hours(cd, d) / a["cal"].hpd, "tf": tf,
+                     "origin": origin, "_key": (text(d) or "9999", code, n)})
+    rows.sort(key=lambda r: r.pop("_key"))
+    return rows[:20]
+
+
+def _not_found(o):
+    if not _wanted(o):
+        return None
+    found = {r[0] for r in o.sql("SELECT task_code FROM TASK WHERE proj_id = ? AND delete_session_id IS NULL", o.pid)}
+    return [c for c in _wanted(o) if c not in found]
+
+
 SLOTS = {
     "data_date": lambda o: _prj(o, "last_recalc_date"),
     "last_f9": lambda o: _prj(o, "last_schedule_date"),
@@ -508,5 +558,7 @@ SLOTS = {
     "target_code": _target,
     "target_name": lambda o: (_target_row(o, "activity") or (None, None))[1],
     "target_tf": lambda o: _target_row(o, "tf"),
+    "ct_def": lambda o: _crit_definition(o) if _wanted(o) else None,
+    "ct_not_found": _not_found,
 }
-TABLES = {"all": all_ms, "late": late_ms, "drivers": drivers, "roots": roots}
+TABLES = {"all": all_ms, "late": late_ms, "drivers": drivers, "roots": roots, "contract": contract}

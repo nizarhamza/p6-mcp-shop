@@ -4,11 +4,14 @@ Generated from reference/spec.json by the catalog build. Each slot of reference/
 
 ## Calls
 
-1. hc = p6_health_check(project="{project}"): full DCMA 14 run: checks, score, thresholds, baseline (saves a snapshot).
-2. tr = p6_health_check_compare(project="{project}", before="previous", after="latest"): trend since the previous audit (fails when there is none). If this call returns an error, keep its message as tr.error (its other fields are null).
-3. dg = p6_dangling(project="{project}", limit=15): open starts and open finishes with a suggested link.
-4. rd = p6_redundant_links(project="{project}", limit=15): links that are candidates for removal.
-5. fa = p6_float_analysis(project="{project}"): total and free float distribution of the open activities.
+1. cv = p6_cpm_validate(project="{project}", limit=5): engine against the last F9: the critical path test relies on it.
+2. hc = p6_health_check(project="{project}"): full DCMA 14 run: checks, score, thresholds, baseline (saves a snapshot).
+3. tr = p6_health_check_compare(project="{project}", before="previous", after="latest"): trend since the previous audit (fails when there is none). If this call returns an error, keep its message as tr.error (its other fields are null).
+4. dg = p6_dangling(project="{project}", limit=15): open starts and open finishes with a suggested link.
+5. rd = p6_redundant_links(project="{project}", limit=15): links that are candidates for removal.
+6. fa = p6_float_analysis(project="{project}"): total and free float distribution of the open activities.
+7. fo_neg = p6_float_origin(project="{project}", task_code=<hc.checks.negative_float.worst.task_code>, limit=1): where the lowest negative float comes from. <hc.checks.negative_float.worst.task_code> is the field checks.negative_float.worst.task_code of the result of hc: when it is null or missing, skip this call (its fields are null).
+8. fo_high = p6_float_origin(project="{project}", task_code=<hc.checks.high_float.worst.task_code>, limit=1): where the highest float comes from. <hc.checks.high_float.worst.task_code> is the field checks.high_float.worst.task_code of the result of hc: when it is null or missing, skip this call (its fields are null).
 
 ## Formats
 
@@ -64,13 +67,21 @@ Generated from reference/spec.json by the catalog build. Each slot of reference/
 | tf_negative | fa.stats.negative_tf | count | int | n/a | open activities with negative total float |
 | critical | fa.stats.critical | count | int | n/a | critical open activities |
 | critical_definition | fa.stats.critical_definition |  | text | n/a | the project's definition of critical |
+| match_rate | cv.match_rate |  | n2 | n/a | share of open activities the engine reproduces (1.00 = all) |
+| trusted | cv.trusted |  | flag | n/a | match rate at least 0.99 |
+| w_points | hc.weighted_score.points |  | n1 | n/a | weighted score out of 100 |
+| w_grade | hc.weighted_score.grade |  | text | n/a | grade A to F |
+| logic_count | hc.checks.logic.count | count | int | n/a | open activities without predecessor or successor |
+| fs_pass | hc.checks.fs_links.pass |  | flag | n/a | fs_links passes |
+| neg_expl | fo_neg.explanation |  | text | n/a | where the lowest negative float comes from |
+| high_expl | fo_high.explanation |  | text | n/a | where the highest float comes from |
 
 ## Table dcma
 
-One row per check, in the order returned (DCMA 14, then key_dates, information only); Value for cpli and bei.
+One row per check, in the order returned (DCMA 14 with logic_density, then key_dates, information only); Value for logic_density, cpli and bei.
 
-Rows: hc.checks, in the order returned, at most 16 (a dict gives one row per item: its key is _key, a plain value _value).
-When the list holds more than 16 items, add the line: Only the first 16 checks are shown.
+Rows: hc.checks, in the order returned, at most 17 (a dict gives one row per item: its key is _key, a plain value _value).
+When the list holds more than 17 items, add the line: Only the first 17 checks are shown.
 No rows: write 'No check returned.' instead of the table (nothing when the call failed).
 
 | Column | Field (row path) | Unit | Format | None | In totals row |
@@ -87,8 +98,8 @@ No rows: write 'No check returned.' instead of the table (nothing when the call 
 
 One row per check: count at the previous audit and now, change, pass now.
 
-Rows: tr.checks, in the order returned, at most 16 (a dict gives one row per item: its key is _key, a plain value _value).
-When the list holds more than 16 items, add the line: Only the first 16 checks are shown.
+Rows: tr.checks, in the order returned, at most 17 (a dict gives one row per item: its key is _key, a plain value _value).
+When the list holds more than 17 items, add the line: Only the first 17 checks are shown.
 No rows: write 'No check to compare.' instead of the table (nothing when the call failed).
 
 | Column | Field (row path) | Unit | Format | None | In totals row |
@@ -131,6 +142,21 @@ No rows: write 'No redundant link.' instead of the table (nothing when the call 
 | Categories | categories |  | list | n/a |  |
 | Drives | drives |  | flag | n/a |  |
 
+## Table weighted
+
+Weighted checks: pass earns the weight, warn half, fail 0; not evaluated left out.
+
+Rows: hc.weighted_score.checks, in the order returned, at most 10 (a dict gives one row per item: its key is _key, a plain value _value).
+When the list holds more than 10 items, add the line: Only the first 10 checks are shown.
+No rows: write 'No weighted check.' instead of the table (nothing when the call failed).
+
+| Column | Field (row path) | Unit | Format | None | In totals row |
+|-|-|-|-|-|-|
+| Check | _key |  | text | n/a |  |
+| Weight | weight |  | int | n/a |  |
+| Status | status |  | text | n/a |  |
+| Earned | earned |  | n1 | left out |  |
+
 ## Table float
 
 Total and free float of the open activities per range of days.
@@ -149,7 +175,7 @@ No rows: write 'No open activity.' instead of the table (nothing when the call f
 
 ## Cross-checks (equal values)
 
-- same data date in every call: hc.schedule_state.data_date = dg.schedule_state.data_date = rd.schedule_state.data_date = fa.schedule_state.data_date
+- same data date in every call: cv.schedule_state.data_date = hc.schedule_state.data_date = dg.schedule_state.data_date = rd.schedule_state.data_date = fa.schedule_state.data_date
 - same open activities: hc.open_incomplete_activities = fa.scope.activities
 - same negative float count: hc.checks.negative_float.count = fa.stats.negative_tf
 - same open starts: hc.checks.logic.dangling.open_start.count = dg.counts.start

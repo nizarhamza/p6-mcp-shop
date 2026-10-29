@@ -35,6 +35,7 @@ SECTION = "Skill"  # label of the issue form's JSON field (id: skill)
 MAINTAINER = shop.REPO.split("/")[0]  # author of the core skills
 SRC = "src"  # core skill sources: src/<name>/ (see docs/AUTHORING.md)
 CORE = "core.json"  # names of the core skills (installed by P6 MCP on first start)
+OLD_FILE_TEXT = 10000  # reference file limit of P6 MCP before 1.10.0 (12,000 since)
 REF_FILES = ("reference/report.md", "reference/checks.md", "reference/spec.json", "reference/fields.md",
              "reference/example.md")
 
@@ -205,6 +206,10 @@ def build(root: str = ROOT, now: str | None = None) -> dict:
         texts = [("template.md", item["template"]), ("description", item["description"])]
         texts += [(f["path"], f["text"]) for f in item["files"]]
         errs += [e for p, t in texts for e in text_problems(f"src/{name} {p}", t)]
+        big = [f["path"] for f in item["files"] if len(f["text"]) > OLD_FILE_TEXT]
+        if big and tuple(int(x) for x in item["min_app_version"].split(".")) < (1, 10, 0):
+            errs.append(f"src/{name}: {', '.join(big)} longer than {OLD_FILE_TEXT} characters needs min_app_version "
+                        "1.10.0 (older P6 MCP refuses it)")
         house = getattr(skills, "house_problems", None)  # P6 MCP 1.9: SKILL.md and files, p6_x(name=) checked
         if house is not None:
             errs += [f"src/{name}: {e}" for e in house(skills.from_config(shop.to_stored(item)), _tool_params)]

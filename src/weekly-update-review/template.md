@@ -1,4 +1,4 @@
-Weekly update review of project {project}: progress, finish dates, critical path, slippage against the baseline, progress issues, the critical activities of the next {weeks} weeks and the actions that apply. Read only: nothing is written to the database.
+Weekly update review of project {project}: progress, finish dates, critical path, slippage against the baseline, changes since the previous update when one is given, progress issues, the critical activities of the next {weeks} weeks and the actions that apply. Read only: nothing is written to the database.
 
 This skill gives you every figure: you copy fields, you never compute them.
 - reference/spec.json: the calls, the slots (each a field of one call) and the tables.
@@ -15,3 +15,5 @@ so do not read further pages.
 
 For this skill:
 - The actions are the fixed sentences of report.md only: add no other advice.
+- previous is the Project ID of the previous update (a project or a saved baseline). Without it, call 6 is
+  skipped and the report has no section Since the previous update.

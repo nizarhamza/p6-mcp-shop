@@ -1,11 +1,12 @@
 {
   "name": "weekly-update-review",
   "title": "Weekly update review",
-  "description": "Weekly schedule update review of a P6 project: progress, finish dates, critical path, slippage against the baseline, progress issues and a critical look-ahead, with fixed actions (read only). Use when the user asks for a weekly update review, a status report or how a project is progressing.",
+  "description": "Weekly schedule update review of a P6 project: progress, finish dates, critical path, slippage against the baseline, changes since the previous update when given, progress issues and a critical look-ahead, with fixed actions (read only). Use when the user asks for a weekly update review, a status report or how a project is progressing.",
   "args": [
     {"name": "project", "description": "Project ID as shown in P6", "default": null},
-    {"name": "weeks", "description": "Weeks of the critical look-ahead window from the data date", "default": "3"}
+    {"name": "weeks", "description": "Weeks of the critical look-ahead window from the data date", "default": "3"},
+    {"name": "previous", "description": "Project ID of the previous update (empty: no comparison with it)", "default": ""}
   ],
-  "min_app_version": "1.9.0",
-  "example_args": {"project": "DEMO-SS225"}
+  "min_app_version": "1.10.0",
+  "example_args": {"project": "DEMO-SS225", "previous": "DEMO-SS225_PREV"}
 }

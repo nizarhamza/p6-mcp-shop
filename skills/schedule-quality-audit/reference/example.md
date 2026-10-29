@@ -5,16 +5,33 @@ Data date 2026-10-26, last schedule run (F9) 2026-10-26 17:30. Every figure come
 ## Score
 
 - Checks passed: 6 of 13 evaluated (46.2%); failed: 7; not evaluated: 3.
+- Weighted score: 70.5 points out of 100, grade C. Engine match rate with the last F9: 1.00.
 - Thresholds: DCMA defaults. Baseline of missed tasks and BEI: DEMO-SS225_BL.
 - Open activities: 75 (not completed, LOE and WBS summary left out).
 
+Weighted score: each check below earns its weight when it passes, half when it fails within its warn band (an at most check up to twice its threshold, an at least check down to 0.9 times it; no band at a zero threshold) and nothing when it fails; a check not evaluated is left out, and the points are the earned weight out of the weight of the evaluated checks. Grades: A from 90 points, B from 80, C from 70, D from 55, F below.
+
+| Check | Weight | Status | Earned |
+|-|-|-|-|
+| logic_density | 20 | pass | 20.0 |
+| logic | 20 | pass | 20.0 |
+| critical_path_test | 15 | pass | 15.0 |
+| negative_float | 15 | fail | 0.0 |
+| high_float | 10 | fail | 0.0 |
+| hard_constraints | 10 | pass | 10.0 |
+| high_duration | 5 | pass | 5.0 |
+| leads | 5 | pass | 5.0 |
+| lags | 5 | fail | 0.0 |
+| fs_links | 5 | warn | 2.5 |
+
 ## DCMA checks
 
-Count and Out of: open activities (logic, hard_constraints, high_float, negative_float), open TT_Task and TT_Rsrc activities (high_duration, resources), links whose successor is open (leads, lags, long_lags, fs_links), all activities (invalid_dates), baseline activities due by the data date (missed_tasks; bei counts the completed activities out of them), constraint dates plus the must finish date (key_dates). LOE and WBS summary activities are always left out. Pass: % at most the threshold, except fs_links (at least); cpli and bei compare their Value (at least the threshold). key_dates is information only.
+Count and Out of: open activities (logic, hard_constraints, high_float, negative_float), open TT_Task and TT_Rsrc activities (high_duration, resources), links whose successor is open (leads, lags, long_lags, fs_links), all activities (invalid_dates), baseline activities due by the data date (missed_tasks; bei counts the completed activities out of them), constraint dates plus the must finish date (key_dates). LOE and WBS summary activities are always left out. Pass: % at most the threshold, except fs_links (at least); logic_density, cpli and bei compare their Value (at least the threshold). logic_density is links whose successor is open per open activity; it counts in the weighted score only, not in the checks passed above. key_dates is information only.
 
 | Check | Count | Out of | % | Value | Threshold | Pass |
 |-|-|-|-|-|-|-|
 | logic | 0 | 75 | 0.0% | n/a | 5.00 | yes |
+| logic_density | 145 | 75 | n/a | 1.93 | 1.50 | yes |
 | leads | 0 | 145 | 0.0% | n/a | 0.00 | yes |
 | lags | 15 | 145 | 10.3% | n/a | 5.00 | no |
 | long_lags | 0 | 145 | 0.0% | n/a | none | not evaluated |
@@ -88,8 +105,11 @@ Total float of the open activities from -36.0 d to 143.0 d; negative: 37; critic
 
 Proposals only: nothing was changed. A fix is applied by the user in P6, or through a dry run that the user reads and confirms; then the project is rescheduled (F9) and audited again.
 
-- Negative float: 37 open activities, down to -36.0 d. Recover the driving path (logic, durations, resources) or review the date it is measured against.
+- Negative float: 37 open activities, down to -36.0 d. Recover the driving path (logic, durations, resources) or review the date it is measured against. Never delete a constraint only to clear negative float.
+  Total float -36.0 d of COM-ENR-1000 comes from the project must finish date 2027-08-16 17:00:00, through COM-ENR-1000 FS 0 d -> MS-1070 FS 0 d -> COM-ENR-1010 FS 0 d -> MS-1080 FS 0 d -> COM-ENR-1020 FS 0 d -> COM-ENR-1030 FS 0 d -> COM-ENR-1040 FS 0 d -> COM-ENR-1050 FS 0 d -> COM-HO-1030 FS 0 d -> MS-1090 FS 0 d -> MS-1100.
 - Missed tasks: 134 activities due by the baseline finished late or not at all. Re-plan their remaining work and its logic.
 - High float: 28 open activities above the limit. Check their successors: a missing link gives float that is not real.
+  Total float 143.0 d of CON-SEC-1010 comes from the project must finish date 2027-08-16 17:00:00, through CON-SEC-1010 FS 0 d -> MS-1060 SS 0 d -> COM-ENR-1000 FS 0 d -> MS-1070 FS 0 d -> COM-ENR-1010 FS 0 d -> MS-1080 FS 0 d -> COM-ENR-1020 FS 0 d -> COM-ENR-1030 FS 0 d -> COM-ENR-1040 FS 0 d -> COM-ENR-1050 FS 0 d -> COM-HO-1030 FS 0 d -> MS-1090 FS 0 d -> MS-1100 ....
 - Lags: 15 links with a positive lag. Replace a lag that stands for work (delivery, curing, review) by an activity.
+- Relationship types: do not convert SS or FF ties to FS only to pass fs_links: a link type follows how the work overlaps.
 - Redundant links: 35 candidates. Remove only a link that does not drive (Drives no), and check the activities it would leave without logic.

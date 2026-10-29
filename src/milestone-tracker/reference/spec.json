@@ -6,7 +6,9 @@
     {"id": "late", "tool": "p6_milestones", "args": {"project": "{project}", "baseline": "{baseline}", "open_only": true, "order": "variance", "limit": 10},
      "why": "open milestones, largest variance in working days first"},
     {"id": "drv", "tool": "p6_driving_path", "args": {"project": "{project}", "target": "{=late.rows.0.task_code}", "limit": 15},
-     "why": "driving predecessors of the open milestone with the largest variance"}
+     "why": "driving predecessors of the open milestone with the largest variance"},
+    {"id": "ct", "tool": "p6_milestones", "args": {"project": "{project}", "baseline": "{baseline}", "codes": "{contract}", "limit": 20}, "when": "contract",
+     "why": "the contract milestones given"}
   ],
   "slots": {
     "data_date": {"step": "ms", "path": "schedule_state.data_date", "format": "date", "meaning": "data date of the project"},
@@ -27,7 +29,9 @@
     "n_open_late": {"step": "ms", "path": "counts.open_late", "format": "int", "unit": "count", "meaning": "open milestones later than their baseline date"},
     "target_code": {"step": "drv", "path": "target.task_code", "format": "text", "meaning": "Activity ID of the open milestone with the largest variance (null: no open milestone)"},
     "target_name": {"step": "drv", "path": "target.task_name", "format": "text", "meaning": "its name"},
-    "target_tf": {"step": "drv", "path": "target.total_float_d", "format": "n1", "unit": "d", "meaning": "its total float"}
+    "target_tf": {"step": "drv", "path": "target.total_float_d", "format": "n1", "unit": "d", "meaning": "its total float"},
+    "ct_def": {"step": "ct", "path": "critical_definition", "format": "text", "meaning": "set when ct ran"},
+    "ct_not_found": {"step": "ct", "path": "not_found", "format": "list", "meaning": "contract IDs not found"}
   },
   "tables": {
     "all": {
@@ -76,6 +80,21 @@
         {"key": "lag", "head": "Lag (d)", "path": "lag_d", "format": "n1", "unit": "d"}
       ]
     },
+    "contract": {
+      "step": "ct", "rows": "rows", "cap": 20, "noun": "contract milestones", "empty": "No contract milestone found.",
+      "meaning": "Contract milestones by date.",
+      "columns": [
+        {"key": "activity", "head": "Milestone", "path": ["task_code", "task_name"], "format": "id_name"},
+        {"key": "cstr", "head": "Constraint", "path": "cstr_label", "format": "text", "none": "none"},
+        {"key": "cdate", "head": "Constraint date", "path": "cstr_date", "format": "date"},
+        {"key": "hard", "head": "Hard", "path": "hard_constraint", "format": "flag"},
+        {"key": "preds", "head": "Predecessors", "path": "predecessor_count", "format": "int", "unit": "count"},
+        {"key": "date", "head": "Forecast", "path": "date", "format": "date"},
+        {"key": "vs_c", "head": "Forecast - constraint (wd)", "path": "vs_constraint_wd", "format": "n1", "unit": "wd"},
+        {"key": "tf", "head": "Total float (d)", "path": "total_float_d", "format": "n1", "unit": "d"},
+        {"key": "origin", "head": "Float comes from", "path": "float_origin_explanation", "format": "text"}
+      ]
+    },
     "roots": {
       "step": "drv", "rows": "drivers_at_root", "cap": 10, "noun": "chain starts", "empty": "No chain start found.",
       "meaning": "What starts each driving chain: data_date, constraint, actual_date (progress), open_start (no predecessor), completed_predecessor, unexplained.",
@@ -87,12 +106,13 @@
     }
   },
   "checks": [
-    {"equal": ["ms.schedule_state.data_date", "late.schedule_state.data_date"], "text": "same data date in both milestone calls"},
-    {"equal": ["ms.schedule_state.data_date", "drv.data_date"], "text": "same data date in the milestones and the driving path"},
-    {"equal": ["ms.must_finish", "late.must_finish"], "text": "same must finish date in both milestone calls"},
+    {"equal": ["ms.schedule_state.data_date", "late.schedule_state.data_date"], "text": "same data date"},
+    {"equal": ["ms.schedule_state.data_date", "drv.data_date"], "text": "same data date (driving path)"},
+    {"equal": ["ms.must_finish", "late.must_finish"], "text": "same must finish date"},
     {"equal": ["ms.counts.open", "late.counts.milestones"], "text": "open milestones = milestones of the open list"},
-    {"equal": ["ms.counts.open_late", "late.counts.late"], "text": "open late milestones = late milestones of the open list"},
-    {"equal": ["ms.counts.critical", "late.counts.critical"], "text": "same critical milestones in both calls"},
-    {"equal": ["late.rows.0.total_float_d", "drv.target.total_float_d"], "text": "same total float of the first open milestone"}
+    {"equal": ["ms.counts.open_late", "late.counts.late"], "text": "same open late milestones"},
+    {"equal": ["ms.counts.critical", "late.counts.critical"], "text": "same critical milestones"},
+    {"equal": ["late.rows.0.total_float_d", "drv.target.total_float_d"], "text": "same total float of the first open milestone"},
+    {"equal": ["ms.schedule_state.data_date", "ct.schedule_state.data_date"], "text": "same data date (contract)"}
   ]
 }

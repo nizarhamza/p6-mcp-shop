@@ -1,0 +1,85 @@
+{
+"spec": 1,
+"steps": [
+{"id": "ui", "tool": "p6_update_integrity", "args": {"project": "{project}", "other": "{previous}", "sample_size": 10}, "why": "every flag: count, up to 10 rows"},
+{"id": "cmp", "tool": "p6_compare_projects", "args": {"project": "{project}", "other": "{previous}", "section": "activities", "limit": 1}, "why": "both data dates again (cross-check)"}
+],
+"slots": {
+"data_date": {"step": "ui", "path": "schedule_state.data_date", "format": "date", "meaning": "data date"},
+"last_f9": {"step": "ui", "path": "schedule_state.last_schedule_date", "format": "datetime", "meaning": "last F9 of the update"},
+"stale": {"step": "ui", "path": "schedule_state.stale", "format": "flag", "meaning": "changed by this server after the last F9"},
+"dd_before": {"step": "ui", "path": "data_date.before", "format": "date", "meaning": "previous data date"},
+"dd_delta": {"step": "ui", "path": "data_date.delta_cd", "format": "n1", "unit": "cd", "meaning": "data date moved by"},
+"raised": {"step": "ui", "path": "raised_count", "format": "int", "unit": "count", "meaning": "flags with a count"},
+"n_open_end": {"step": "ui", "path": "summary.open_end_to_finish", "format": "int", "unit": "count", "meaning": "flag count"},
+"n_neg": {"step": "ui", "path": "summary.negative_float_cleared_by_constraint", "format": "int", "unit": "count", "meaning": "flag count"},
+"n_must": {"step": "ui", "path": "summary.must_finish_moved", "format": "int", "unit": "count", "meaning": "flag count"},
+"n_act": {"step": "ui", "path": "summary.actuals_changed", "format": "int", "unit": "count", "meaning": "flag count"},
+"n_cut": {"step": "ui", "path": "summary.duration_cut", "format": "int", "unit": "count", "meaning": "flag count"},
+"n_cut_crit": {"step": "ui", "path": "flags.duration_cut.critical", "format": "int", "unit": "count", "meaning": "critical before"},
+"n_links": {"step": "ui", "path": "summary.links_removed_on_critical", "format": "int", "unit": "count", "meaning": "flag count"},
+"n_rel": {"step": "ui", "path": "summary.rel_type_or_lag_changed", "format": "int", "unit": "count", "meaning": "flag count"},
+"n_opt": {"step": "ui", "path": "summary.schedule_options_changed", "format": "int", "unit": "count", "meaning": "flag count"},
+"n_cal": {"step": "ui", "path": "summary.calendars_changed", "format": "int", "unit": "count", "meaning": "flag count"},
+"n_del": {"step": "ui", "path": "summary.deleted_in_progress_or_critical", "format": "int", "unit": "count", "meaning": "flag count"},
+"n_dd": {"step": "ui", "path": "summary.data_date", "format": "int", "unit": "count", "meaning": "1: did not advance"},
+"must_before": {"step": "ui", "path": "must_finish.before", "format": "datetime", "none": "none", "meaning": "previous must finish"},
+"must_after": {"step": "ui", "path": "must_finish.after", "format": "datetime", "none": "none", "meaning": "must finish now"},
+"must_wd": {"step": "ui", "path": "must_finish.delta_wd", "format": "n1", "unit": "wd proj", "meaning": "must finish moved by"},
+"caveat": {"step": "ui", "path": "caveat", "format": "text", "meaning": "what a flag is and is not"}
+},
+"tables": {
+"summary": {"step": "ui", "rows": "summary", "cap": 11, "noun": "flags", "empty": "No flag.", "columns": [
+{"key": "flag", "head": "Flag", "path": "_key", "format": "text"},
+{"key": "n", "head": "Count", "path": "_value", "format": "int", "unit": "count"}]},
+"t_open_end": {"step": "ui", "rows": "flags.open_end_to_finish.sample", "cap": 10, "noun": "rows", "empty": "None.", "columns": [
+{"key": "act", "head": "Activity", "path": ["task_code", "task_name"], "format": "id_name"},
+{"key": "side", "head": "Had no", "path": "side", "format": "text"},
+{"key": "to", "head": "Now linked to", "path": ["linked_to", "linked_to_name"], "format": "id_name"}]},
+"t_neg": {"step": "ui", "rows": "flags.negative_float_cleared_by_constraint.sample", "cap": 10, "noun": "rows", "empty": "None.", "columns": [
+{"key": "act", "head": "Activity", "path": ["task_code", "task_name"], "format": "id_name"},
+{"key": "tf0", "head": "Float before (d)", "path": "total_float_before_d", "format": "n1", "unit": "d"},
+{"key": "tf1", "head": "Float now (d)", "path": "total_float_after_d", "format": "n1", "unit": "d"},
+{"key": "cause", "head": "Cause", "path": "cause", "format": "text"}]},
+"t_act": {"step": "ui", "rows": "flags.actuals_changed.sample", "cap": 10, "noun": "rows", "empty": "None.", "columns": [
+{"key": "act", "head": "Activity", "path": ["task_code", "task_name"], "format": "id_name"},
+{"key": "f", "head": "Date", "path": "field", "format": "text"},
+{"key": "b", "head": "Before", "path": "before", "format": "datetime", "none": "none"},
+{"key": "a", "head": "Now", "path": "after", "format": "datetime", "none": "none"}]},
+"t_cut": {"step": "ui", "rows": "flags.duration_cut.sample", "cap": 10, "noun": "rows", "empty": "None.", "columns": [
+{"key": "act", "head": "Activity", "path": ["task_code", "task_name"], "format": "id_name"},
+{"key": "o0", "head": "Original before (d)", "path": "original_before_d", "format": "n1", "unit": "d"},
+{"key": "o1", "head": "Original now (d)", "path": "original_after_d", "format": "n1", "unit": "d"},
+{"key": "r0", "head": "Remaining before (d)", "path": "remaining_before_d", "format": "n1", "unit": "d"},
+{"key": "r1", "head": "Remaining now (d)", "path": "remaining_after_d", "format": "n1", "unit": "d"}]},
+"t_links": {"step": "ui", "rows": "flags.links_removed_on_critical.sample", "cap": 10, "noun": "rows", "empty": "None.", "columns": [
+{"key": "p", "head": "Predecessor", "path": ["pred_code", "pred_name"], "format": "id_name"},
+{"key": "s", "head": "Successor", "path": ["succ_code", "succ_name"], "format": "id_name"},
+{"key": "t", "head": "Type", "path": "type", "format": "text"},
+{"key": "tf", "head": "Successor float before (d)", "path": "successor_total_float_before_d", "format": "n1", "unit": "d"}]},
+"t_rel": {"step": "ui", "rows": "flags.rel_type_or_lag_changed.sample", "cap": 10, "noun": "rows", "empty": "None.", "columns": [
+{"key": "p", "head": "Predecessor", "path": ["pred_code", "pred_name"], "format": "id_name"},
+{"key": "s", "head": "Successor", "path": ["succ_code", "succ_name"], "format": "id_name"},
+{"key": "c", "head": "Change", "path": "change", "format": "text"},
+{"key": "b", "head": "Before", "path": "before", "format": "text"},
+{"key": "a", "head": "Now", "path": "after", "format": "text"}]},
+"t_opt": {"step": "ui", "rows": "flags.schedule_options_changed.sample", "cap": 10, "noun": "rows", "empty": "None.", "columns": [
+{"key": "o", "head": "Option", "path": "option", "format": "text"},
+{"key": "b", "head": "Before", "path": "before", "format": "text", "none": "not stored"},
+{"key": "a", "head": "Now", "path": "after", "format": "text", "none": "not stored"}]},
+"t_cal": {"step": "ui", "rows": "flags.calendars_changed.sample", "cap": 10, "noun": "rows", "empty": "None.", "columns": [
+{"key": "i", "head": "Activity or calendar", "path": ["item", "item_name"], "format": "id_name"},
+{"key": "b", "head": "Before", "path": "before", "format": "text"},
+{"key": "a", "head": "Now", "path": "after", "format": "text"},
+{"key": "d", "head": "Detail", "path": "detail", "format": "text"}]},
+"t_del": {"step": "ui", "rows": "flags.deleted_in_progress_or_critical.sample", "cap": 10, "noun": "rows", "empty": "None.", "columns": [
+{"key": "act", "head": "Activity", "path": ["task_code", "task_name"], "format": "id_name"},
+{"key": "st", "head": "Status before", "path": "status_before", "format": "text"},
+{"key": "tf", "head": "Float before (d)", "path": "total_float_before_d", "format": "n1", "unit": "d"},
+{"key": "c", "head": "Critical before", "path": "critical_before", "format": "flag"}]}
+},
+"checks": [
+{"equal": ["ui.data_date.after", "ui.schedule_state.data_date", "cmp.projects.last_recalc_date.project"], "text": "same data date of the update"},
+{"equal": ["ui.data_date.before", "cmp.projects.last_recalc_date.other"], "text": "same data date of the previous update"}
+]
+}

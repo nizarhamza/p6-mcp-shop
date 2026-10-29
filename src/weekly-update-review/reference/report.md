@@ -43,6 +43,14 @@ Activities added or removed, then those whose finish moved by 5 calendar days or
 [table: slipped]
 [end if]
 
+[if: prev_dd]
+## Since the previous update
+
+Compared with {previous} (data date {prev_dd}): open activities with less total float {eroded}; open activities that became critical {became}; no longer critical {no_longer} (each project's own definition of critical). Added and removed activities first, then the largest finish changes in calendar days.
+
+[table: prev_rows]
+
+[end if]
 ## Progress issues
 
 Out of sequence links: {oos_links}. Out of sequence option of F9: {logic_mode}.
@@ -86,6 +94,9 @@ Only the actions that apply to this update:
 [end if]
 [if: la_critical]
 - Critical activities in the look-ahead window: {la_critical}. Follow them up.
+[end if]
+[if: became]
+- Activities that became critical since the previous update: {became}. Review what drives them with the planner before the next update.
 [end if]
 [if not: baseline_used]
 - Assign a project baseline in P6 to measure slippage.

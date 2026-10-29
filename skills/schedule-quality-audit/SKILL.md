@@ -1,6 +1,6 @@
 ---
 name: p6-schedule-quality-audit
-description: "DCMA 14 quality audit of a P6 project: score, checks against their thresholds, trend since the previous audit, dangling ends, redundant links and float profile, with fixes proposed only. Use when the user asks to audit, check or score the quality of a schedule."
+description: "DCMA 14 quality audit of a P6 project: score and weighted grade, checks against their thresholds, engine check, trend since the previous audit, dangling ends, redundant links and float profile, with fixes proposed only. Use when the user asks to audit, check or score the quality of a schedule."
 ---
 <!-- p6mcp skill: written by P6 MCP Settings, overwritten on the next install -->
 <!-- p6mcp files: ["reference/report.md", "reference/checks.md", "reference/spec.json", "reference/fields.md", "reference/example.md"] -->
@@ -10,7 +10,7 @@ description: "DCMA 14 quality audit of a P6 project: score, checks against their
 Inputs (take them from the user's message; ask for a required one that is missing, use the default when an optional one is empty):
 - project: Project ID as shown in P6
 
-Schedule quality audit of project <project>: DCMA 14 checks and score, trend since the previous audit, dangling ends, redundant links and float profile. Fixes are proposed, never applied: this skill calls no write tool.
+Schedule quality audit of project <project>: DCMA 14 checks, score and weighted grade, engine check, trend since the previous audit, dangling ends, redundant links and float profile. Fixes are proposed, never applied: this skill calls no write tool.
 
 This skill gives you every figure: you copy fields, you never compute them.
 - reference/spec.json: the calls, the slots (each a field of one call) and the tables.
@@ -21,11 +21,14 @@ This skill gives you every figure: you copy fields, you never compute them.
 
 Calls, in this order. Each call is one page: the report shows that page and says when there are more,
 so do not read further pages.
-1. hc = p6_health_check(project="<project>"): full DCMA 14 run: checks, score, thresholds, baseline (saves a snapshot).
-2. tr = p6_health_check_compare(project="<project>", before="previous", after="latest"): trend since the previous audit (fails when there is none). If this call returns an error, keep its message as tr.error (its other fields are null).
-3. dg = p6_dangling(project="<project>", limit=15): open starts and open finishes with a suggested link.
-4. rd = p6_redundant_links(project="<project>", limit=15): links that are candidates for removal.
-5. fa = p6_float_analysis(project="<project>"): total and free float distribution of the open activities.
+1. cv = p6_cpm_validate(project="<project>", limit=5): engine against the last F9: the critical path test relies on it.
+2. hc = p6_health_check(project="<project>"): full DCMA 14 run: checks, score, thresholds, baseline (saves a snapshot).
+3. tr = p6_health_check_compare(project="<project>", before="previous", after="latest"): trend since the previous audit (fails when there is none). If this call returns an error, keep its message as tr.error (its other fields are null).
+4. dg = p6_dangling(project="<project>", limit=15): open starts and open finishes with a suggested link.
+5. rd = p6_redundant_links(project="<project>", limit=15): links that are candidates for removal.
+6. fa = p6_float_analysis(project="<project>"): total and free float distribution of the open activities.
+7. fo_neg = p6_float_origin(project="<project>", task_code=<hc.checks.negative_float.worst.task_code>, limit=1): where the lowest negative float comes from. <hc.checks.negative_float.worst.task_code> is the field checks.negative_float.worst.task_code of the result of hc: when it is null or missing, skip this call (its fields are null).
+8. fo_high = p6_float_origin(project="<project>", task_code=<hc.checks.high_float.worst.task_code>, limit=1): where the highest float comes from. <hc.checks.high_float.worst.task_code> is the field checks.high_float.worst.task_code of the result of hc: when it is null or missing, skip this call (its fields are null).
 
 Write the report:
 1. Start from reference/report.md. Replace each slot placeholder (a slot name in curly braces) by the field
@@ -55,7 +58,7 @@ Write the report:
    the checks that pass.
 
 For this skill: the DCMA and trend tables have one row per key of hc.checks and tr.checks, the key in the
-Check column, in the order returned. The dangling count adds open starts and open finishes: an activity
+Check column, in the order returned; the weighted table one row per key of hc.weighted_score.checks. The dangling count adds open starts and open finishes: an activity
 with both counts twice.
 
 Fixes: the report only proposes them. Do not call a write tool in this skill. If the user then asks to
