@@ -22,7 +22,7 @@ jobs:
       - name: P6 MCP (package, tests/fixtures)
         uses: actions/checkout@v7
         with:
-          repository: nizarhamza/mcp-for-primavera-p6
+          repository: nizarhamza/p6-mcp
           ref: ${{ env.P6MCP_REF }}
           path: p6mcp-src
 
