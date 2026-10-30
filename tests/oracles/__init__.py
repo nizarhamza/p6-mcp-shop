@@ -1,6 +1,6 @@
 """Independent oracles of the core skills: for every slot and every table of a skill's spec.json, the value
 computed again on the demo database with SQL on P6's own tables (and the edit log files), never through
-P6 MCP's code. tests/test_oracles.py (and python tools/golden.py verify <name>) compare them with what the
+the app's code. tests/test_oracles.py (and python tools/golden.py verify <name>) compare them with what the
 golden harness reads from the tools.
 
 A skill's module is tests/oracles/<name with _ for ->.py and defines:

@@ -1,20 +1,20 @@
 name: Share a P6 skill
-description: Submit one of your P6 MCP skills to the shop (P6 MCP Settings, Skills, Share on GitHub fills this in).
+description: Submit one of your skills to the shop (MCP for Primavera P6 Settings, Skills, Share on GitHub fills this in).
 title: "Share: "
 labels: ["submission"]
 body:
   - type: markdown
     attributes:
       value: |
-        Thank you for sharing. P6 MCP copied your skill to the clipboard: paste it in the **Skill** field
-        below (Ctrl+V), tick the license box, then click **Create**.
+        Thank you for sharing. MCP for Primavera P6 copied your skill to the clipboard: paste it in the
+        **Skill** field below (Ctrl+V), tick the license box, then click **Create**.
         The maintainer reviews every skill before it is published under the Apache-2.0 license.
         **Never include client names, project names or schedule data.**
   - type: textarea
     id: skill
     attributes:
       label: Skill
-      description: The skill as P6 MCP copied it to your clipboard (JSON). Paste it here.
+      description: The skill as MCP for Primavera P6 copied it to your clipboard (JSON). Paste it here.
       render: json
     validations:
       required: true

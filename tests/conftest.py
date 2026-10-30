@@ -1,6 +1,6 @@
 """Catalog tests: tools/ and tests/ on sys.path, the demo database of the golden harness built once.
 
-Run with a P6 MCP checkout (with its tests/fixtures) on PYTHONPATH and its dependencies installed:
+Run with an MCP for Primavera P6 checkout (with its tests/fixtures) on PYTHONPATH and its dependencies installed:
 
     PYTHONPATH=<p6-mcp checkout> python -m pytest
 """

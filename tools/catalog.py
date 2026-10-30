@@ -1,10 +1,10 @@
-"""P6 MCP skill shop catalog: build the core skills from src/, publish an approved issue, rebuild
+"""MCP for Primavera P6 skill shop catalog: build the core skills from src/, publish an approved issue, rebuild
 index.json, check the whole catalog.
 
-The rules are P6 MCP's own: p6mcp.shop.check_shared and p6mcp.skills.check_skill, imported from a checkout
+The rules are the app's own: p6mcp.shop.check_shared and p6mcp.skills.check_skill, imported from a checkout
 of nizarhamza/p6-mcp at the tag pinned in the workflows (P6MCP_REF, put on PYTHONPATH). Standard library
 only, except build: it renders each example report through the golden harness (tools/golden.py), which
-runs P6 MCP's tools on the demo database of that checkout's test fixtures.
+runs the app's tools on the demo database of that checkout's test fixtures.
 
     python tools/catalog.py build      # skills/<name>/ of every src/<name>/ (core skills), index.json
     python tools/catalog.py publish --event "$GITHUB_EVENT_PATH" --out result.json
@@ -13,7 +13,7 @@ runs P6 MCP's tools on the demo database of that checkout's test fixtures.
 
 Core skills (src/<name>/, listed in core.json for the app's first install) are written by the maintainer
 and built here; shared skills come from approved issues. The issue body is untrusted text: it is only
-parsed as JSON and checked, never run or passed to a shell. There are no built-in skills any more (P6 MCP
+parsed as JSON and checked, never run or passed to a shell. There are no built-in skills any more (since
 1.9.0): build removes the built-in entries older catalogs listed.
 """
 
@@ -34,8 +34,8 @@ ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SECTION = "Skill"  # label of the issue form's JSON field (id: skill)
 MAINTAINER = shop.REPO.split("/")[0]  # author of the core skills
 SRC = "src"  # core skill sources: src/<name>/ (see docs/AUTHORING.md)
-CORE = "core.json"  # names of the core skills (installed by P6 MCP on first start)
-OLD_FILE_TEXT = 10000  # reference file limit of P6 MCP before 1.10.0 (12,000 since)
+CORE = "core.json"  # names of the core skills (installed by the app on first start)
+OLD_FILE_TEXT = 10000  # reference file limit of the app before 1.10.0 (12,000 since)
 REF_FILES = ("reference/report.md", "reference/checks.md", "reference/spec.json", "reference/fields.md",
              "reference/example.md")
 
@@ -54,7 +54,7 @@ def parse_issue(body: str) -> dict:
     if fence:
         text = fence.group(1)
     if not text or text == "_No response_":
-        raise Refused("the Skill field is empty: paste the text P6 MCP copied to the clipboard")
+        raise Refused("the Skill field is empty: paste the text MCP for Primavera P6 copied to the clipboard")
     try:
         item = json.loads(text)
     except ValueError as e:
@@ -83,7 +83,7 @@ def _read_meta(root: str, name: str):
 
 
 def write_skill(root: str, meta: dict) -> None:
-    """skills/<name>/: p6mcp.json (what P6 MCP installs) plus SKILL.md (as P6 MCP writes it for the clients)
+    """skills/<name>/: p6mcp.json (what the app installs) plus SKILL.md (as the app writes it for the clients)
     and the reference files to browse. The folder is rewritten: files of an earlier version that are gone
     are removed."""
     folder = os.path.join(root, "skills", meta["name"])
@@ -113,7 +113,7 @@ def publish(event: dict, root: str = ROOT, now: str | None = None) -> dict:
     old = _read_meta(root, name)
     if old is not None:
         if old.get("builtin"):
-            raise Refused(f"the name {name!r} is a built-in skill of P6 MCP: rename the skill and share it again")
+            raise Refused(f"the name {name!r} is a built-in skill of the app: rename the skill and share it again")
         if old.get("author") != author:
             raise Refused(f"the name {name!r} is already published by @{old.get('author')}: rename the skill "
                           "(Skills page, Edit) and share it again")
@@ -129,12 +129,12 @@ def publish(event: dict, root: str = ROOT, now: str | None = None) -> dict:
     write_skill(root, meta)
     write_index(root, now)
     return {"name": name, "version": version, "commit": f"Publish {name} v{version} (#{issue['number']})",
-            "message": f"Published **{name}** version {version}. P6 MCP users see it on the Skill shop page in a "
-                       f"few minutes (`skills/{name}`)."}
+            "message": f"Published **{name}** version {version}. MCP for Primavera P6 users see it on the Skill "
+                       f"shop page in a few minutes (`skills/{name}`)."}
 
 
 def core_names(root: str = ROOT) -> list[str]:
-    """core.json: the names of the core skills (P6 MCP installs them on first start)."""
+    """core.json: the names of the core skills (the app installs them on first start)."""
     path = os.path.join(root, CORE)
     if not os.path.isfile(path):
         return []
@@ -146,7 +146,7 @@ def core_names(root: str = ROOT) -> list[str]:
 
 
 def text_problems(where: str, text: str) -> list[str]:
-    """Skill texts are ASCII without double hyphens (P6 MCP's rule for its skills)."""
+    """Skill texts are ASCII without double hyphens (the app's rule for its skills)."""
     errs = []
     if not text.isascii():
         errs.append(f"{where}: not ASCII")
@@ -156,7 +156,7 @@ def text_problems(where: str, text: str) -> list[str]:
 
 
 def _tool_params(tool: str):
-    """Parameter names of a tool of the P6 MCP the golden harness runs."""
+    """Parameter names of a tool of the app checkout the golden harness runs."""
     import golden
     return golden.demo()["params"].get(tool, ())
 
@@ -173,7 +173,7 @@ def core_item(skill: dict, example: str) -> dict:
     return {"name": meta["name"], "title": meta["title"], "description": meta["description"],
             "args": [{"name": a["name"], "description": a["description"], "default": a.get("default")}
                      for a in meta.get("args", [])],
-            # stored as P6 MCP's Skills page stores a template (settings_logic.clean_skill: no leading or
+            # stored as the app's Skills page stores a template (settings_logic.clean_skill: no leading or
             # trailing line break), so a restored core skill never reads as edited
             "template": skill["template"].replace(golden.STEPS_MARK, calls)
             .replace(golden.RULES_MARK, golden.WRITE_RULES).strip("\n"),
@@ -209,8 +209,8 @@ def build(root: str = ROOT, now: str | None = None) -> dict:
         big = [f["path"] for f in item["files"] if len(f["text"]) > OLD_FILE_TEXT]
         if big and tuple(int(x) for x in item["min_app_version"].split(".")) < (1, 10, 0):
             errs.append(f"src/{name}: {', '.join(big)} longer than {OLD_FILE_TEXT} characters needs min_app_version "
-                        "1.10.0 (older P6 MCP refuses it)")
-        house = getattr(skills, "house_problems", None)  # P6 MCP 1.9: SKILL.md and files, p6_x(name=) checked
+                        "1.10.0 (older versions refuse it)")
+        house = getattr(skills, "house_problems", None)  # 1.9: SKILL.md and files, p6_x(name=) checked
         if house is not None:
             errs += [f"src/{name}: {e}" for e in house(skills.from_config(shop.to_stored(item)), _tool_params)]
         old = _read_meta(root, name)
@@ -287,7 +287,7 @@ def check(root: str = ROOT) -> list[str]:
         with open(path, encoding="utf-8") as fh:
             meta = json.load(fh)
         if meta.get("builtin"):
-            errs.append(f"skills/{name}: a built-in entry (P6 MCP has none since 1.9.0): run python "
+            errs.append(f"skills/{name}: a built-in entry (the app has none since 1.9.0): run python "
                         "tools/catalog.py build")
         else:
             errs += [f"skills/{name}: {e}" for e in shop.check_shared(meta)]
@@ -343,7 +343,7 @@ def main(argv=None) -> int:
     try:
         res = dict(publish(event), ok=True)
     except Refused as e:
-        res = {"ok": False, "message": f"This skill cannot be published yet: {e}. Fix it in P6 MCP and share it "
+        res = {"ok": False, "message": f"This skill cannot be published yet: {e}. Fix it in the app and share it "
                                        "again (or edit the Skill field of this issue), then ask for a new review."}
     with open(a.out, "w", encoding="utf-8") as fh:
         json.dump(res, fh)

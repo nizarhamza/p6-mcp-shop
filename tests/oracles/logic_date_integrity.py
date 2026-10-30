@@ -9,7 +9,7 @@ from oracles import SUMMARY_TYPES, Contains, Unchecked
 from oracles.delay_whatif import TF_TOL_H, _stored, cpm, limits
 from oracles.milestone_tracker import _tree, network, text
 
-ENGINE_VERSION = 1  # the version P6 MCP 1.10.0 documents for its CPM rules (bumped with them)
+ENGINE_VERSION = 1  # the version MCP for Primavera P6 1.10.0 documents for its CPM rules (bumped with them)
 FIELDS = (("es", "early start"), ("ef", "early finish"), ("ls", "late start"), ("lf", "late finish"))
 
 _CACHE: dict = {}

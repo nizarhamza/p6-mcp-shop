@@ -1,4 +1,4 @@
-"""Tests of tools/catalog.py (run by check.yml with P6 MCP's checkout on PYTHONPATH)."""
+"""Tests of tools/catalog.py (run by check.yml with the app's checkout on PYTHONPATH)."""
 
 import json
 import os
@@ -90,7 +90,7 @@ class CatalogTest(unittest.TestCase):
         with open(os.path.join(old, "p6mcp.json"), "w", encoding="utf-8") as fh:
             json.dump({"builtin": True, "name": "delay-whatif"}, fh)
         catalog.write_index(self.root)
-        self.assertIn("skills/delay-whatif: a built-in entry (P6 MCP has none since 1.9.0): run python "
+        self.assertIn("skills/delay-whatif: a built-in entry (the app has none since 1.9.0): run python "
                       "tools/catalog.py build", catalog.check(self.root))
         shutil.rmtree(old)
         catalog.write_index(self.root)

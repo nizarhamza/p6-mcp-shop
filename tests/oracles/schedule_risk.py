@@ -1,4 +1,4 @@
-"""Oracles of schedule-risk: the Monte Carlo run again here, independently of P6 MCP's engine, from P6's rows
+"""Oracles of schedule-risk: the Monte Carlo run again here, independently of the app's engine, from P6's rows
 read with SQL. The draws follow the rule p6_schedule_risk documents: random.Random(seed), the open activities
 that are not milestones, LOE or WBS summary in task_id order, triangular(85 %, 135 %, mode 100 %) of the
 remaining duration, rounded to whole minutes as P6 works. Each iteration is a forward pass written here (the

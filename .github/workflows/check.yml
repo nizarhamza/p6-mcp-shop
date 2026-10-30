@@ -9,8 +9,8 @@ permissions:
   contents: read
 
 env:
-  # P6 MCP whose rules, tools and demo fixture (tests/fixtures/make_demo.py) check the catalog. The core
-  # skills need P6 MCP 1.9.0 or later (publish.yml is pinned to the same release).
+  # MCP for Primavera P6 release whose rules, tools and demo fixture (tests/fixtures/make_demo.py) check the
+  # catalog. The core skills need 1.9.0 or later (publish.yml is pinned to the same release).
   P6MCP_REF: v2.0.0
 
 jobs:
@@ -19,7 +19,7 @@ jobs:
     steps:
       - uses: actions/checkout@v7
 
-      - name: P6 MCP (package, tests/fixtures)
+      - name: MCP for Primavera P6 (package, tests/fixtures)
         uses: actions/checkout@v7
         with:
           repository: nizarhamza/p6-mcp
@@ -30,7 +30,7 @@ jobs:
         with:
           python-version: "3.12"
 
-      - name: Install P6 MCP and pytest
+      - name: Install MCP for Primavera P6 and pytest
         run: python -m pip install ./p6mcp-src pytest
 
       - name: Build leaves skills/ and index.json unchanged

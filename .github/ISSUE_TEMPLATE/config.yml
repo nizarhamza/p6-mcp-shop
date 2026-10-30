@@ -1,5 +1,5 @@
 blank_issues_enabled: true
 contact_links:
-  - name: P6 MCP bugs and questions
+  - name: MCP for Primavera P6 bugs and questions
     url: https://github.com/nizarhamza/p6-mcp/issues
-    about: Problems with P6 MCP itself go to its own repository.
+    about: Problems with MCP for Primavera P6 itself go to its own repository.

@@ -1,9 +1,9 @@
 """Golden harness of the catalog's core skills (src/<name>/): run the calls of reference/spec.json through
-P6 MCP's own tools on the public demo database, resolve every slot and table, render reference/report.md.
+MCP for Primavera P6's own tools on the public demo database, resolve every slot and table, render reference/report.md.
 
 The rendering is what the skill asks the model to write, figure for figure; the catalog build saves it as
 reference/example.md and the tests compare every slot and table cell with an independent oracle
-(tests/oracles). Needs a P6 MCP checkout on PYTHONPATH with its test fixtures (tests/fixtures/make_demo.py
+(tests/oracles). Needs a checkout of the app on PYTHONPATH with its test fixtures (tests/fixtures/make_demo.py
 builds the demo database; P6MCP_SRC names the checkout when p6mcp is installed elsewhere) and its
 dependencies installed. The server is pointed at a throwaway config and database: never at the user's
 settings. Write tools only run as dry runs (the database file stays byte-identical).
@@ -297,7 +297,7 @@ def problems(skill: dict, tool_params: dict | None = None) -> list[str]:
     if skill["template"].count(RULES_MARK) != 1:
         errs.append(f"template.md must hold the line {RULES_MARK} once (the writing rules every core skill shares)")
     if "{" in SLOT_RE.sub(lambda m: "" if m.group(1) in args else m.group(0), skill["template"]):
-        errs.append("template.md: a brace that is not an argument placeholder (P6 MCP leaves no field unfilled: "
+        errs.append("template.md: a brace that is not an argument placeholder (the app leaves no field unfilled: "
                     "write 'a slot name in curly braces' instead of {slot})")
     return errs
 
@@ -591,7 +591,7 @@ def _lit(v, numeric: set) -> str:
         m = ARG_ONLY.fullmatch(v)
         r = REF_ONLY.fullmatch(v)
         if r:
-            return f"<{r.group(1)}.{r.group(2)}>"  # a field of an earlier result (no brace: P6 MCP fills every field)
+            return f"<{r.group(1)}.{r.group(2)}>"  # a field of an earlier result (no brace: the app fills every field)
         return v if m and m.group(1) in numeric else json.dumps(v)
     if isinstance(v, list):
         return "[" + ", ".join(_lit(x, numeric) for x in v) + "]"
@@ -687,7 +687,7 @@ _DEMO: dict = {}
 
 
 def p6mcp_src() -> str:
-    """The P6 MCP checkout that holds tests/fixtures/make_demo.py."""
+    """The app checkout that holds tests/fixtures/make_demo.py."""
     env = os.environ.get("P6MCP_SRC")
     if env:
         return os.path.abspath(env)
@@ -702,7 +702,7 @@ def demo() -> dict:
         return _DEMO
     fixtures = os.path.join(p6mcp_src(), "tests", "fixtures")
     if not os.path.isfile(os.path.join(fixtures, "make_demo.py")):
-        raise RuntimeError(f"no tests/fixtures/make_demo.py in the P6 MCP checkout {p6mcp_src()}: put a checkout "
+        raise RuntimeError(f"no tests/fixtures/make_demo.py in the app checkout {p6mcp_src()}: put a checkout "
                            "of nizarhamza/p6-mcp with its tests on PYTHONPATH, or set P6MCP_SRC")
     sys.path.insert(0, fixtures)
     import make_demo
@@ -763,7 +763,7 @@ def golden(skill: dict) -> tuple[str, dict, dict]:
 
 
 def verify(name: str) -> list[str]:
-    """Every problem of one skill: source, rendering, P6 MCP's limits and house rules, oracles."""
+    """Every problem of one skill: source, rendering, the app's limits and house rules, oracles."""
     sys.path.insert(0, os.path.join(ROOT, "tests"))
     sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
     import catalog
