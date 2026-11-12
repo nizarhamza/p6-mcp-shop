@@ -9,7 +9,7 @@ from oracles import SUMMARY_TYPES, Contains, Unchecked
 from oracles.delay_whatif import TF_TOL_H, _stored, cpm, limits
 from oracles.milestone_tracker import _tree, network, text
 
-ENGINE_VERSION = 1  # the version MCP for Primavera P6 1.10.0 documents for its CPM rules (bumped with them)
+ENGINE_VERSION = 23  # the version MCP for Primavera P6 2.1.0 documents for its CPM rules (P6 25.12 rules; bumped with them)
 FIELDS = (("es", "early start"), ("ef", "early finish"), ("ls", "late start"), ("lf", "late finish"))
 
 _CACHE: dict = {}
@@ -113,7 +113,7 @@ SLOTS = {
     "n_done_bad": checked(lambda o: engine(o)["bad_done"]),
     "finish_engine": checked(_finish),
     "finish_stored": lambda o: _prj(o, "scd_end_date"),
-    "rules": lambda o: Contains("retained logic", "lag rule calendar", "must finish date", "leveling not modelled"),
+    "rules": lambda o: Contains("every status placed", "lag rule", "open ends", "leveling not modelled"),
     "engine_version": lambda o: ENGINE_VERSION,
     "opt_source": lambda o: "PROJPROP scheduling" if sched_tree(o, o.pid) is not None else Contains("none stored"),
     "lag_rule": lambda o: (sched_tree(o, o.pid) or ({}, []))[0].get("sched_calendar_on_relationship_lag",
