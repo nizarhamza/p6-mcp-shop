@@ -9,7 +9,7 @@ Run this check before pressing F9 on an imported update, because F9 overwrites t
 - Open activities: 75; match rate 1.00 (early and late dates and total float the same); differing: 0.
 - Completed activities: 139; match rate 1.00 (early dates the same); differing: 0.
 - Project finish: engine 2027-10-05 17:00, last F9 2027-10-05 17:00.
-- Trusted (match rate at least 0.99): yes. Engine version 1.
+- Trusted (match rate at least 0.99): yes. Engine version 23.
 
 ## Activities whose stored dates differ
 
@@ -17,7 +17,7 @@ No activity differs: every stored date follows from the logic.
 
 ## What the engine models
 
-retained logic placing every status (lag between two completed activities ignored), lag elapsed before the data date dropped, calendars per activity, lag rule calendar, must finish date for open ends, total float per sched_float_type; LOE, WBS summary, ALAP approximated; leveling not modelled
+P6 25.12 rules measured on 107 parity cases (engine version 23): every status placed, out-of-sequence modes, lag from progressed predecessors, calendars per activity and lag rule, planned start and resume dates, constraints and pairs, ALAP, LOE, WBS summary, resource dependent activities on their resources' calendars, expected finish, open ends, total float per sched_float_type, free float, longest path, float paths; resource leveling not modelled
 
 ## Schedule options in force
 

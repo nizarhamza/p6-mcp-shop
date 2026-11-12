@@ -60,6 +60,6 @@ Showing the first 15 of 36 activities.
 
 ## Assumptions
 
-- 1,000 iterations, seed 1, engine version 1. Engine match rate with the last F9: 1.00.
+- 1,000 iterations, seed 1, engine version 23. Engine match rate with the last F9: 1.00.
 - Remaining duration of 67 open activities drawn from a triangular range of 85 % (minimum), 100 % (most likely) and 135 % (maximum) of the remaining duration.
 - An estimate built on assumed duration ranges, not a forecast: each open activity's remaining duration is drawn on its own (no correlation between activities is modelled), discrete risk events, resource limits and changes of logic are not modelled, and the network, calendars and constraints are those of the last F9.

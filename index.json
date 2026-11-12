@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "generated_at": "2026-10-29T09:46:05Z",
+  "generated_at": "2026-11-12T16:51:42Z",
   "skills": [
     {
       "schema": 1,
@@ -122,10 +122,10 @@
       "min_app_version": "1.10.0",
       "author": "nizarhamza",
       "license": "Apache-2.0",
-      "version": 1,
-      "published_at": "2026-10-29T09:46:05Z",
+      "version": 2,
+      "published_at": "2026-11-12T16:51:42Z",
       "core": true,
-      "sha256": "9c4659d7ea23e8a1fda1a4dbfa008f3d5d4fc321724ff7c749c880f1c4247f99"
+      "sha256": "56b122c3373f0a0ffc042f09534442c7edc2fd7c1006419ae5ea568ed54fc206"
     },
     {
       "schema": 1,
@@ -249,10 +249,10 @@
       "min_app_version": "1.10.0",
       "author": "nizarhamza",
       "license": "Apache-2.0",
-      "version": 1,
-      "published_at": "2026-10-29T09:46:05Z",
+      "version": 2,
+      "published_at": "2026-11-12T16:51:42Z",
       "core": true,
-      "sha256": "840cd108f806175568acda11e79640dc53e05b6c2b4f267baa26324d3cdbb064"
+      "sha256": "6236cf4045502f7d74d0a12fd589b4895f3e83f84e6b63243409b10896cec67f"
     },
     {
       "schema": 1,
