@@ -33,6 +33,8 @@ again once. If it still differs, say which group differs and do not publish the 
   table ends with "Showing the first <returned> of <total> WBS nodes." when wbs.next_offset is not null;
   the periods table ends with "Only the first 36 periods are shown." when pc.periods holds more.
 - Every WBS node is written "WBS code - name".
+- Cost figures come from sum.cost only: the "No costs" block is kept only when sum.cost.available is false,
+  and PV and SPI in cost are n/a without a baseline. Units and cost figures are never mixed.
 - The warning block is kept only when schedule_state.stale is true.
 - Headings and sentences are in the user's language; values, IDs, names and number formats exactly as
   formatted.

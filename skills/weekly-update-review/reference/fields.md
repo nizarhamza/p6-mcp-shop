@@ -4,10 +4,10 @@ Generated from reference/spec.json by the catalog build. Each slot of reference/
 
 ## Calls
 
-1. sum = p6_project_summary(project="{project}"): progress, finish, baseline.
+1. sum = p6_project_summary(project="{project}"): progress, cost, finish, baseline.
 2. prog = p6_progress_check(project="{project}", sample_size=5): out of sequence, status checks.
-3. cp = p6_critical_path(project="{project}", limit=15): critical activities.
-4. la = p6_lookahead(project="{project}", weeks={weeks}, critical_only=true, limit=20): critical look-ahead.
+3. cp = p6_critical_path(project="{project}", fields=["task_name", "status_code", "early_start_date", "early_end_date", "rem_dur_d", "total_float_d"], limit=15): critical activities.
+4. la = p6_lookahead(project="{project}", weeks={weeks}, critical_only=true, fields=["task_name", "total_float_d"], limit=20): critical look-ahead.
 5. cmp = p6_compare_projects(project="{project}", section="activities", min_variance_days=5, limit=15): slippage against the baseline. If this call returns an error, keep its message as cmp.error (its other fields are null).
 6. prev = p6_compare_projects(project="{project}", other="{previous}", section="activities", min_variance_days=0, limit=15): changes since the previous update. Make this call only when <previous> is given; when it is empty, skip it (its fields are null).
 Leave out an argument whose value is empty (previous).
@@ -40,6 +40,7 @@ Leave out an argument whose value is empty (previous).
 - wd proj: working days of the project calendar
 - cd: calendar days
 - d: days of each activity's calendar (hours / hours per day)
+- cost: cost in the database currency
 - %: percent
 - count: a count
 
@@ -57,6 +58,11 @@ Leave out an argument whose value is empty (previous).
 | mismatch | sum.percent_complete.units_vs_physical_mismatch |  | int | n/a | physical % and units % differ |
 | bl_planned_pct | sum.baseline.planned_units_pct_at_data_date | % | pct1 | n/a | baseline planned units % |
 | spi_units | sum.baseline.spi_units |  | n2 | n/a | SPI in units |
+| currency | sum.cost.currency |  | text | database currency | base currency of the costs |
+| cost_cpi | sum.cost.cpi |  | n2 | n/a | CPI: earned / actual cost |
+| cost_spi | sum.cost.spi |  | n2 | n/a | SPI in cost: earned / baseline planned cost |
+| cost_eac | sum.cost.eac | cost | n0 | n/a | estimate at completion |
+| cost_vac | sum.cost.vac | cost | n0 | n/a | VAC: budget at completion - EAC |
 | scheduled_finish | sum.dates.scheduled_finish |  | date | n/a | scheduled finish |
 | must_finish | sum.dates.must_finish_by |  | date | n/a | must finish by |
 | vs_must_cd | sum.dates.finish_vs_must_finish_by_cd | cd | n1 | n/a | finish - must finish |

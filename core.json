@@ -13,5 +13,7 @@
   "resource-wbs-summary",
   "update-integrity-audit",
   "schedule-risk",
-  "logic-date-integrity"
+  "logic-date-integrity",
+  "trend-report",
+  "resource-loading-review"
 ]

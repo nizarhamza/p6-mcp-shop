@@ -12,6 +12,7 @@ Warning: this project was changed after its last F9. Dates, float and critical c
 - Physical % complete (weighted by budget units): {physical_pct}; duration % complete: {duration_pct}; activities completed: {completed_pct}.
 - Activities whose physical % and units % differ: {mismatch}.
 - Baseline planned units % at the data date: {bl_planned_pct}; SPI (units, earned / baseline planned): {spi_units}.
+- Cost ({currency}, n/a without costs): CPI {cost_cpi}; SPI in cost {cost_spi}; EAC {cost_eac}; VAC (budget at completion - EAC) {cost_vac}.
 
 ## Finish
 

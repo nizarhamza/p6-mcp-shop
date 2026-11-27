@@ -2,7 +2,7 @@
   "spec": 1,
   "steps": [
     {"id": "sum", "tool": "p6_project_summary", "args": {"project": "{project}", "baseline": "{baseline}"},
-     "why": "% complete by every method, baseline used, schedule state"},
+     "why": "% complete by every method, baseline used, cost earned value, schedule state"},
     {"id": "pc", "tool": "p6_progress_curve", "args": {"project": "{project}", "period": "{period}", "baseline": "{baseline}"},
      "why": "earned value at the data date and the S-curve periods", "optional": true},
     {"id": "wbs", "tool": "p6_list_wbs", "args": {"project": "{project}", "max_depth": 1, "baseline": "{baseline}", "limit": 30},
@@ -38,7 +38,18 @@
     "clipped": {"step": "pc", "path": "checks.clipped_actuals", "format": "int", "unit": "count", "meaning": "assignments with actual dates after the data date"},
     "clamped": {"step": "pc", "path": "checks.clamped_remaining", "format": "int", "unit": "count", "meaning": "assignments whose remaining start is before the data date"},
     "ev_other": {"step": "pc", "path": "checks.wbs_other_ev_technique", "format": "int", "unit": "count", "meaning": "WBS nodes with another earned value technique"},
-    "pc_error": {"step": "pc", "path": "error", "format": "text", "meaning": "error of pc (null: it worked)"}
+    "pc_error": {"step": "pc", "path": "error", "format": "text", "meaning": "error of pc (null: it worked)"},
+    "cost_available": {"step": "sum", "path": "cost.available", "format": "flag", "meaning": "the project carries costs"},
+    "currency": {"step": "sum", "path": "cost.currency", "format": "text", "none": "database currency", "meaning": "base currency of the costs"},
+    "cost_bac": {"step": "sum", "path": "cost.bac", "format": "n0", "unit": "cost", "meaning": "BAC: budgeted cost of every assignment plus expenses"},
+    "cost_pv": {"step": "sum", "path": "cost.pv", "format": "n0", "unit": "cost", "meaning": "PV: baseline planned cost at the data date"},
+    "cost_ev": {"step": "sum", "path": "cost.ev", "format": "n0", "unit": "cost", "meaning": "EV: budgeted cost x earned % of each activity"},
+    "cost_ac": {"step": "sum", "path": "cost.ac", "format": "n0", "unit": "cost", "meaning": "AC: actual cost plus actual expenses"},
+    "cost_cpi": {"step": "sum", "path": "cost.cpi", "format": "n2", "meaning": "CPI: EV / AC"},
+    "cost_spi": {"step": "sum", "path": "cost.spi", "format": "n2", "meaning": "SPI in cost: EV / PV"},
+    "cost_eac": {"step": "sum", "path": "cost.eac", "format": "n0", "unit": "cost", "meaning": "EAC by the project's estimate to complete technique"},
+    "cost_vac": {"step": "sum", "path": "cost.vac", "format": "n0", "unit": "cost", "meaning": "VAC: BAC - EAC"},
+    "eac_formula": {"step": "sum", "path": "cost.eac_method.formula", "format": "text", "meaning": "how EAC is computed"}
   },
   "tables": {
     "periods": {

@@ -8,6 +8,7 @@ Data date 2026-10-26, last schedule run (F9) 2026-10-26 17:30. Read only: nothin
 - Physical % complete (weighted by budget units): 45.7%; duration % complete: 66.4%; activities completed: 65.0%.
 - Activities whose physical % and units % differ: 4.
 - Baseline planned units % at the data date: 54.1%; SPI (units, earned / baseline planned): 0.85.
+- Cost (USD, n/a without costs): CPI 0.83; SPI in cost 0.87; EAC 4,412,091; VAC (budget at completion - EAC) -388,031.
 
 ## Finish
 

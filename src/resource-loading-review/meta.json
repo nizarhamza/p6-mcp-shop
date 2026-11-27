@@ -1,0 +1,12 @@
+{
+  "name": "resource-loading-review",
+  "title": "Resource loading review",
+  "description": "Time-phased resource loading of a P6 project per month or week: per resource the totals, the peak period and the over-allocated periods against what its calendar and max units allow, the periods over the limit and the resources without a limit (read only). Use when the user asks about resource loading, histograms, peaks or over-allocated resources.",
+  "args": [
+    {"name": "project", "description": "Project ID as shown in P6", "default": null},
+    {"name": "period", "description": "Loading period: month or week", "default": "month"},
+    {"name": "resource", "description": "Resource ID to review alone (empty: every resource)", "default": ""}
+  ],
+  "min_app_version": "3.5.0",
+  "example_args": {"project": "DEMO-SS225"}
+}

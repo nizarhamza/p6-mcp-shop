@@ -23,8 +23,8 @@ This skill gives you every figure: you copy fields, you never compute them.
 Calls, in this order. Each call is one page: the report shows that page and says when there are more,
 so do not read further pages.
 1. fa = p6_float_analysis(project="<project>"): float statistics and distribution of the open activities, data date.
-2. fp = p6_float_paths(project="<project>", limit=30): float paths of the last F9: summary per path and the activities in path order.
-3. nc = p6_critical_path(project="<project>", float_threshold_days=<near_days>, min_float_days=0, limit=30): near-critical activities: total float above 0 and at or below near_days; project counts.
+2. fp = p6_float_paths(project="<project>", fields=["task_name", "early_start_date", "early_end_date", "total_float_d", "float_path", "float_path_order"], limit=30): float paths of the last F9: summary per path and the activities in path order.
+3. nc = p6_critical_path(project="<project>", float_threshold_days=<near_days>, min_float_days=0, fields=["task_name", "status_code", "rem_dur_d", "total_float_d", "free_float_d", "early_end_date", "float_path"], limit=30): near-critical activities: total float above 0 and at or below near_days; project counts.
 
 Write the report:
 1. Start from reference/report.md. Replace each slot placeholder (a slot name in curly braces) by the field

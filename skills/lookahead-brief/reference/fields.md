@@ -4,8 +4,8 @@ Generated from reference/spec.json by the catalog build. Each slot of reference/
 
 ## Calls
 
-1. crit = p6_lookahead(project="{project}", weeks={weeks}, critical_only=true, limit=30): critical activities of the window.
-2. all = p6_lookahead(project="{project}", weeks={weeks}, limit=50): every activity of the window, weeks, counts, data date.
+1. crit = p6_lookahead(project="{project}", weeks={weeks}, critical_only=true, fields=["task_name", "status_code", "total_float_d"], limit=30): critical activities of the window.
+2. all = p6_lookahead(project="{project}", weeks={weeks}, fields=["task_name", "status_code", "total_float_d"], limit=50): every activity of the window, weeks, counts, data date.
 
 ## Formats
 

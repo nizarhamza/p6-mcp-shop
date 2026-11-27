@@ -4,7 +4,7 @@ Generated from reference/spec.json by the catalog build. Each slot of reference/
 
 ## Calls
 
-1. sum = p6_project_summary(project="{project}", baseline="{baseline}"): % complete by every method, baseline used, schedule state.
+1. sum = p6_project_summary(project="{project}", baseline="{baseline}"): % complete by every method, baseline used, cost earned value, schedule state.
 2. pc = p6_progress_curve(project="{project}", period="{period}", baseline="{baseline}"): earned value at the data date and the S-curve periods. If this call returns an error, keep its message as pc.error (its other fields are null).
 3. wbs = p6_list_wbs(project="{project}", max_depth=1, baseline="{baseline}", limit=30): units % and baseline planned % per level 1 WBS node.
 Leave out an argument whose value is empty (baseline).
@@ -34,6 +34,7 @@ Leave out an argument whose value is empty (baseline).
 ## Units
 
 - h: hours
+- cost: cost in the database currency
 - %: percent
 - count: a count
 
@@ -71,6 +72,17 @@ Leave out an argument whose value is empty (baseline).
 | clamped | pc.checks.clamped_remaining | count | int | n/a | assignments whose remaining start is before the data date |
 | ev_other | pc.checks.wbs_other_ev_technique | count | int | n/a | WBS nodes with another earned value technique |
 | pc_error | pc.error |  | text | n/a | error of pc (null: it worked) |
+| cost_available | sum.cost.available |  | flag | n/a | the project carries costs |
+| currency | sum.cost.currency |  | text | database currency | base currency of the costs |
+| cost_bac | sum.cost.bac | cost | n0 | n/a | BAC: budgeted cost of every assignment plus expenses |
+| cost_pv | sum.cost.pv | cost | n0 | n/a | PV: baseline planned cost at the data date |
+| cost_ev | sum.cost.ev | cost | n0 | n/a | EV: budgeted cost x earned % of each activity |
+| cost_ac | sum.cost.ac | cost | n0 | n/a | AC: actual cost plus actual expenses |
+| cost_cpi | sum.cost.cpi |  | n2 | n/a | CPI: EV / AC |
+| cost_spi | sum.cost.spi |  | n2 | n/a | SPI in cost: EV / PV |
+| cost_eac | sum.cost.eac | cost | n0 | n/a | EAC by the project's estimate to complete technique |
+| cost_vac | sum.cost.vac | cost | n0 | n/a | VAC: BAC - EAC |
+| eac_formula | sum.cost.eac_method.formula |  | text | n/a | how EAC is computed |
 
 ## Table periods
 

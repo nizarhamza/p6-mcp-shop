@@ -1,6 +1,6 @@
 ---
 name: p6-progress-earned-value
-description: "Progress of a P6 project in units: % complete by every method, earned value and SPI at the data date, the S-curve per month or week against the baseline, and progress by WBS. Use when the user asks how far a project has progressed, for its earned value or SPI, or for an S-curve."
+description: "Progress of a P6 project in units: % complete by every method, earned value and SPI at the data date, cost earned value (CPI, EAC), the S-curve per month or week against the baseline, and progress by WBS. Use when the user asks how far a project has progressed, for its earned value or SPI, or for an S-curve."
 ---
 <!-- p6mcp skill: written by P6 MCP Settings, overwritten on the next install -->
 <!-- p6mcp files: ["reference/report.md", "reference/checks.md", "reference/spec.json", "reference/fields.md", "reference/example.md"] -->
@@ -12,7 +12,7 @@ Inputs (take them from the user's message; ask for a required one that is missin
 - baseline: Project ID of the baseline (empty: the project baseline) (may be empty)
 - period: S-curve period: month or week (default month)
 
-Progress and earned value of project <project> in units: % complete by every method, earned value and SPI at the data date, the S-curve per <period> against the baseline <baseline> (the project baseline when it is empty), and progress by level 1 WBS. Nothing is written to the database.
+Progress and earned value of project <project> in units: % complete by every method, earned value and SPI at the data date, cost earned value (BAC, PV, EV, AC, CPI, SPI, EAC, VAC), the S-curve per <period> against the baseline <baseline> (the project baseline when it is empty), and progress by level 1 WBS. Nothing is written to the database.
 
 This skill gives you every figure: you copy fields, you never compute them.
 - reference/spec.json: the calls, the slots (each a field of one call) and the tables.
@@ -23,7 +23,7 @@ This skill gives you every figure: you copy fields, you never compute them.
 
 Calls, in this order. Each call is one page: the report shows that page and says when there are more,
 so do not read further pages.
-1. sum = p6_project_summary(project="<project>", baseline="<baseline>"): % complete by every method, baseline used, schedule state.
+1. sum = p6_project_summary(project="<project>", baseline="<baseline>"): % complete by every method, baseline used, cost earned value, schedule state.
 2. pc = p6_progress_curve(project="<project>", period="<period>", baseline="<baseline>"): earned value at the data date and the S-curve periods. If this call returns an error, keep its message as pc.error (its other fields are null).
 3. wbs = p6_list_wbs(project="<project>", max_depth=1, baseline="<baseline>", limit=30): units % and baseline planned % per level 1 WBS node.
 Leave out an argument whose value is empty (baseline).

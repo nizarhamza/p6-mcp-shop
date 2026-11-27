@@ -1,0 +1,106 @@
+{
+  "spec": 1,
+  "steps": [
+    {"id": "t", "tool": "p6_trend", "args": {"projects": ["{updates}"], "eps": "{eps}", "near_critical_days": "{near_days}", "limit": 20},
+     "why": "one row per update: finish, progress, float, DCMA, milestones and changes since the previous update"}
+  ],
+  "slots": {
+    "total": {"step": "t", "path": "total", "format": "int", "unit": "count", "meaning": "updates in the series"},
+    "first_dd": {"step": "t", "path": "series.first_data_date", "format": "date", "meaning": "data date of the first update"},
+    "last_dd": {"step": "t", "path": "series.last_data_date", "format": "date", "meaning": "data date of the latest update"},
+    "near_d": {"step": "t", "path": "near_critical_days", "format": "n1", "unit": "d", "meaning": "near critical limit in days of each activity's calendar"},
+    "last_project": {"step": "t", "path": "rows.-1.project", "format": "text", "meaning": "Project ID of the latest update shown"},
+    "last_vs_prev": {"step": "t", "path": "rows.-1.finish_variance_previous_wd", "format": "n1", "unit": "wd proj", "meaning": "finish of the latest update shown minus the previous update's (positive = later)"},
+    "last_neg": {"step": "t", "path": "rows.-1.negative_float", "format": "int", "unit": "count", "meaning": "open activities with negative float in the latest update shown"},
+    "last_failed": {"step": "t", "path": "rows.-1.dcma.failed", "format": "list", "none": "none", "meaning": "DCMA checks failed in the latest update shown"},
+    "last_cuts": {"step": "t", "path": "rows.-1.changes.durations_cut", "format": "int", "unit": "count", "meaning": "durations cut since the previous update (as p6_update_integrity)"},
+    "last_removed": {"step": "t", "path": "rows.-1.changes.activities_removed", "format": "int", "unit": "count", "meaning": "activities removed since the previous update"},
+    "last_stale": {"step": "t", "path": "rows.-1.stale", "format": "flag", "meaning": "the latest update shown was changed by this server after its last F9"}
+  },
+  "tables": {
+    "updates": {
+      "step": "t", "rows": "rows", "cap": 20, "noun": "updates", "empty": "No update.",
+      "meaning": "Dates of each update; finish variances in working days of the update's project calendar, positive = later.",
+      "columns": [
+        {"key": "update", "head": "#", "path": "update", "format": "int"},
+        {"key": "project", "head": "Update", "path": "project", "format": "text"},
+        {"key": "data_date", "head": "Data date", "path": "data_date", "format": "date"},
+        {"key": "finish", "head": "Finish", "path": "finish", "format": "date"},
+        {"key": "must", "head": "Must finish", "path": "must_finish", "format": "date"},
+        {"key": "vs_must", "head": "vs must finish (wd proj)", "path": "finish_vs_must_finish_wd", "format": "n1", "unit": "wd proj"},
+        {"key": "vs_first", "head": "vs first (wd proj)", "path": "finish_variance_first_wd", "format": "n1", "unit": "wd proj"},
+        {"key": "vs_prev", "head": "vs previous (wd proj)", "path": "finish_variance_previous_wd", "format": "n1", "unit": "wd proj"},
+        {"key": "vs_bl", "head": "vs baseline (wd proj)", "path": "baseline_finish_variance_wd", "format": "n1", "unit": "wd proj"},
+        {"key": "stale", "head": "Changed after F9", "path": "stale", "format": "flag"}
+      ]
+    },
+    "progress": {
+      "step": "t", "rows": "rows", "cap": 20, "noun": "updates", "empty": "No update.",
+      "meaning": "Progress and float of each update; float of open activities (LOE and WBS summary left out).",
+      "columns": [
+        {"key": "project", "head": "Update", "path": "project", "format": "text"},
+        {"key": "units_pct", "head": "Units %", "path": "units_pct", "format": "pct1", "unit": "%"},
+        {"key": "planned_pct", "head": "BL planned %", "path": "planned_units_pct", "format": "pct1", "unit": "%"},
+        {"key": "spi", "head": "SPI (units)", "path": "spi_units", "format": "n2"},
+        {"key": "critical", "head": "Critical", "path": "critical", "format": "int", "unit": "count"},
+        {"key": "near", "head": "Near critical", "path": "near_critical", "format": "int", "unit": "count"},
+        {"key": "neg", "head": "Negative float", "path": "negative_float", "format": "int", "unit": "count"},
+        {"key": "min_tf", "head": "Min float (d)", "path": "total_float.min_d", "format": "n1", "unit": "d"},
+        {"key": "median_tf", "head": "Median float (d)", "path": "total_float.median_d", "format": "n1", "unit": "d"}
+      ]
+    },
+    "quality": {
+      "step": "t", "rows": "rows", "cap": 20, "noun": "updates", "empty": "No update.",
+      "meaning": "DCMA weighted score, grade, failed checks and BEI of each update, as p6_health_check with its defaults.",
+      "columns": [
+        {"key": "project", "head": "Update", "path": "project", "format": "text"},
+        {"key": "points", "head": "DCMA points", "path": "dcma.points", "format": "n1"},
+        {"key": "grade", "head": "Grade", "path": "dcma.grade", "format": "text"},
+        {"key": "failed", "head": "Failed checks", "path": "dcma.failed", "format": "list", "none": "none"},
+        {"key": "bei", "head": "BEI", "path": "dcma.bei", "format": "n2"},
+        {"key": "bei_pass", "head": "BEI passed", "path": "dcma.bei_pass", "format": "flag"}
+      ]
+    },
+    "changes": {
+      "step": "t", "rows": "rows", "cap": 20, "noun": "updates", "empty": "No update.",
+      "meaning": "What changed since the previous update (n/a on the first): activities by Activity ID, links, durations cut.",
+      "columns": [
+        {"key": "project", "head": "Update", "path": "project", "format": "text"},
+        {"key": "since", "head": "Since", "path": "changes.since", "format": "text"},
+        {"key": "added", "head": "Activities added", "path": "changes.activities_added", "format": "int", "unit": "count"},
+        {"key": "removed", "head": "Activities removed", "path": "changes.activities_removed", "format": "int", "unit": "count"},
+        {"key": "links_added", "head": "Links added", "path": "changes.links_added", "format": "int", "unit": "count"},
+        {"key": "links_removed", "head": "Links removed", "path": "changes.links_removed", "format": "int", "unit": "count"},
+        {"key": "cuts", "head": "Durations cut", "path": "changes.durations_cut", "format": "int", "unit": "count"}
+      ]
+    },
+    "milestones": {
+      "step": "t", "rows": "milestones", "cap": 20, "noun": "milestones", "empty": "No milestone is followed.",
+      "meaning": "Milestones followed, by date in the latest update.",
+      "columns": [
+        {"key": "milestone", "head": "Milestone", "path": ["task_code", "task_name"], "format": "id_name"},
+        {"key": "type", "head": "Type", "path": "task_type", "format": "text"},
+        {"key": "updates", "head": "Updates holding it", "path": "updates", "format": "int", "unit": "count"}
+      ]
+    },
+    "ms_latest": {
+      "step": "t", "rows": "rows.-1.milestones", "cap": 20, "noun": "milestones", "empty": "No milestone is followed.",
+      "meaning": "The milestones followed in the latest update shown (same order as the milestones table): date (actual else forecast), slip since the previous update and variance since the first, in working days of the milestone's calendar.",
+      "columns": [
+        {"key": "code", "head": "Activity ID", "path": "task_code", "format": "text"},
+        {"key": "date", "head": "Date", "path": "date", "format": "date"},
+        {"key": "kind", "head": "Date kind", "path": "date_kind", "format": "text"},
+        {"key": "status", "head": "Status", "path": "status_code", "format": "text"},
+        {"key": "slip", "head": "Slip since previous (wd)", "path": "slip_wd", "format": "n1", "unit": "wd"},
+        {"key": "variance", "head": "Variance since first (wd)", "path": "variance_first_wd", "format": "n1", "unit": "wd"}
+      ]
+    },
+    "notes": {
+      "step": "t", "rows": "notes", "cap": 10, "noun": "notes", "empty": "No note.",
+      "columns": [{"key": "note", "head": "Note", "path": "", "format": "text"}]
+    }
+  },
+  "checks": [
+    {"equal": ["t.total", "t.series.updates"], "text": "every update of the series counted once"}
+  ]
+}
