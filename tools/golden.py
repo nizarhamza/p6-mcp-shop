@@ -14,10 +14,12 @@ settings. Write tools only run as dry runs (the database file stays byte-identic
 
 spec.json (the format is documented in docs/AUTHORING.md):
     steps   [{id, tool, args, why, optional, when}]: args (nested lists and dicts too) may hold {arg} (a skill
-            argument; an empty one is left out) and {=step.path} (a field of an earlier result; a null one
-            skips the step); optional: an error of the call is kept as {error}, its slots are null; when:
+            argument; an empty one is left out; alone as a list item, one item per value separated by commas,
+            and a list left with no item is left out) and {=step.path} (a field of an earlier result; a null
+            one skips the step); optional: an error of the call is kept as {error}, its slots are null; when:
             an optional argument (default "") that must be given, else the step is skipped
-    slots   {name: {step, path, format, unit, none, meaning}}: path = dotted keys (and list indexes)
+    slots   {name: {step, path, format, unit, none, meaning}}: path = dotted keys (and list indexes, -1 = the
+            last item)
     tables  {name: {step, rows, cap, noun, empty, filter, totals, meaning, columns [{key, head, path, format,
             unit, none, in_totals}]}}: rows names a list (or a dict: one row per item, its key in _key, a
             plain value in _value); a column path "" is the row itself (lists of texts)
@@ -316,16 +318,16 @@ def _format_problems(where: str, d: dict) -> list[str]:
 # ----------------------------------------------------------------- values
 
 def get(obj, path: str):
-    """Value at a dotted path (keys, list indexes; "" = obj itself); Missing when there is no such field. A
-    field under a null one is null (suggestion.reason when suggestion is null)."""
+    """Value at a dotted path (keys, list indexes, -1 = the last; "" = obj itself); Missing when there is no such
+    field. A field under a null one is null (suggestion.reason when suggestion is null)."""
     cur = obj
     for part in path.split(".") if path else []:
         if cur is None:
             return None
         if isinstance(cur, dict) and part in cur:
             cur = cur[part]
-        elif isinstance(cur, list) and part.isdigit() and int(part) < len(cur):
-            cur = cur[int(part)]
+        elif isinstance(cur, list) and re.fullmatch(r"-?\d+", part) and -len(cur) <= int(part) < len(cur):
+            cur = cur[int(part)]  # -1 = the last item
         else:
             raise Missing(f"no field {path!r} (missing at {part!r})")
     return cur
@@ -396,8 +398,10 @@ def numeric_args(meta: dict) -> set:
 
 def call_args(step: dict, args: dict, numeric: set = frozenset(), results: dict | None = None) -> dict:
     """The step's arguments filled in, lists and dicts too: "{arg}" alone gives the argument (a number for a
-    numeric argument; an empty one leaves its key out), "{=step.path}" alone the field of an earlier result
-    (null or missing: _Skip), other text has its {arg} fields replaced."""
+    numeric argument; an empty one leaves its key out; alone as a list item, one item per value separated by
+    commas: ["{updates}"] gives ["A", "B"]; a list whose items were all empty arguments leaves its key out),
+    "{=step.path}" alone the field of an earlier result (null or missing: _Skip), other text has its {arg}
+    fields replaced."""
     def fill(v):
         if isinstance(v, str):
             m = ARG_ONLY.fullmatch(v)
@@ -417,7 +421,16 @@ def call_args(step: dict, args: dict, numeric: set = frozenset(), results: dict 
                 return val
             return SLOT_RE.sub(lambda mm: str(args.get(mm.group(1)) or ""), v)
         if isinstance(v, list):
-            return [x for x in (fill(y) for y in v) if x is not _OMIT]
+            out = []
+            for y in v:
+                m = ARG_ONLY.fullmatch(y) if isinstance(y, str) else None
+                if m and m.group(1) not in numeric:  # one item per value separated by commas
+                    out += [p.strip() for p in str(args.get(m.group(1)) or "").split(",") if p.strip()]
+                    continue
+                x = fill(y)
+                if x is not _OMIT:
+                    out.append(x)
+            return _OMIT if v and not out else out
         if isinstance(v, dict):
             return {k: x for k, x in ((k, fill(y)) for k, y in v.items()) if x is not _OMIT}
         return v
@@ -610,6 +623,12 @@ def steps_text(spec: dict, numeric: set = frozenset(), optional: set = frozenset
         for step, path in refs:
             line += (f". <{step}.{path}> is the field {path} of the result of {step}: when it is null or missing, "
                      "skip this call (its fields are null)")
+        for k, v in st["args"].items():
+            items = sorted({m.group(1) for y in v if isinstance(y, str) for m in [ARG_ONLY.fullmatch(y)]
+                            if m and m.group(1) not in numeric}) if isinstance(v, list) else []
+            if items:
+                line += (f". In {k}=[...], write one list item per value of the argument {' and '.join(items)} "
+                         f"(values separated by commas: \"A,B\" gives \"A\", \"B\"); leave {k} out when it is empty")
         if st.get("when"):
             line += (f". Make this call only when <{st['when']}> is given; when it is empty, skip it (its fields are "
                      "null)")

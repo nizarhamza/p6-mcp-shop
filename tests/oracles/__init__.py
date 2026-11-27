@@ -13,7 +13,8 @@ A skill's module is tests/oracles/<name with _ for ->.py and defines:
 o is an Oracle: o.sql(query, *args) -> rows (sqlite3.Row), o.one(query, *args) -> first value, o.pid (the
 project of the example, None for a skill without a project argument), o.args (the example arguments, {work}
 resolved), o.work (the folder of the database: edit log, XER files, output files), o.db (its path).
-Numbers the tools round to 2 decimals are compared within 0.0051 and once formatted.
+Numbers the tools round to 2 decimals (or 4) are compared within 0.0051 and once formatted (the oracle's value
+rounded to 2 or to 4 decimals, then formatted).
 """
 
 from __future__ import annotations
@@ -126,8 +127,10 @@ def same(got, want, form: str):
     if isinstance(got, nums) and isinstance(want, nums) and not isinstance(got, bool) and not isinstance(want, bool):
         if abs(got - want) > TOL + 1e-9 * abs(want):
             return f"{got!r} != {want!r}"
-        shown, expected = golden.fmt(got, form), golden.fmt(round(want, 2), form)
-        return None if shown == expected else f"written {shown!r}, oracle gives {expected!r}"
+        # the tool rounds to 2 decimals (most fields) or to 4 (percentages and indexes of some tools): the written
+        # value must be the oracle's written either way (48.34886 is 48.3% from 48.3489, 48.4% from 48.35)
+        shown, expected = golden.fmt(got, form), {golden.fmt(round(want, n), form) for n in (2, 4)}
+        return None if shown in expected else f"written {shown!r}, oracle gives {' or '.join(sorted(expected))}"
     if got != want:
         return f"{got!r} != {want!r}"
     return None

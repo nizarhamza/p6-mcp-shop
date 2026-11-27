@@ -1,7 +1,8 @@
 """Harness features the core skills rely on (docs/AUTHORING.md): empty arguments left out (H1), nested
 arguments (H2), {work} (H3), optional steps (H4), dict tables (H5), scalar rows (H6), {=step.path} arguments
 (H7), skills without a project (H8), write tools as dry runs only (H9), no state between skills (H10), [if:]
-on numbers (H11), steps made only when an optional argument is given (H12)."""
+on numbers (H11), steps made only when an optional argument is given (H12), list arguments from values separated
+by commas (H13), the last item of a list in a path (H14)."""
 
 from __future__ import annotations
 
@@ -232,3 +233,29 @@ def test_h12_a_step_only_when_its_argument_is_given():
     bad["steps"][1]["when"] = "project"
     assert "step prev: when must name an optional argument (default \"\") of the skill" in golden.problems(
         skill(bad, report, meta))
+
+
+def test_h13_a_list_argument_from_values_separated_by_commas():
+    meta = {"name": "x", "title": "X", "args": [{"name": "updates", "description": "U", "default": ""},
+                                                 {"name": "eps", "description": "E", "default": ""}]}
+    spec = {"spec": 1, "steps": [{"id": "t", "tool": "t_trend", "args": {"projects": ["{updates}"], "eps": "{eps}",
+                                                                         "limit": 20}}]}
+    assert golden.problems(skill(spec, "Run.\n", meta)) == []
+    step = spec["steps"][0]
+    assert golden.call_args(step, {"updates": " A, B ,,C ", "eps": ""}) == {"projects": ["A", "B", "C"], "limit": 20}
+    assert golden.call_args(step, {"updates": "", "eps": "E1"}) == {"eps": "E1", "limit": 20}  # no item: left out
+    both = {"id": "w", "tool": "t", "args": {"projects": ["P0", "{updates}"], "edits": [{"op": "{eps}"}]}}
+    assert golden.call_args(both, {"updates": "", "eps": ""}) == {"projects": ["P0"], "edits": [{}]}
+    text = golden.steps_text(spec, set(), golden.optional_args(meta))
+    assert text.startswith('1. t = t_trend(projects=["{updates}"], eps="{eps}", limit=20). In projects=[...], write one '
+                           'list item per value of the argument updates (values separated by commas: "A,B" gives "A", '
+                           '"B"); leave projects out when it is empty.')
+
+
+def test_h14_the_last_item_of_a_list():
+    res = {"rows": [{"ms": [1]}, {"ms": [2, 3]}]}
+    assert golden.get(res, "rows.-1.ms") == [2, 3] and golden.get(res, "rows.-2.ms.0") == 1
+    with pytest.raises(golden.Missing):
+        golden.get(res, "rows.-3")
+    with pytest.raises(golden.Missing):
+        golden.get({"rows": []}, "rows.-1")
