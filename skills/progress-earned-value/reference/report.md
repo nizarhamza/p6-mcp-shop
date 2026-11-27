@@ -41,9 +41,20 @@ Assignments with actual dates after the data date (their actuals are counted at 
 Assignments with a remaining start before the data date (their remaining work starts at the data date): {clamped}.
 [end if]
 
+## Earned value at the data date (cost, {currency})
+
+[if not: cost_available]
+No costs: the assignments and expenses of {project} carry no budgeted, actual or remaining cost, so the cost figures are n/a.
+[end if]
+[if: cost_available]
+- BAC (budget at completion) {cost_bac}; PV (baseline planned cost) {cost_pv}; EV (earned) {cost_ev}; AC (actual cost) {cost_ac}.
+- CPI (EV / AC) {cost_cpi}; SPI in cost (EV / PV) {cost_spi}.
+- EAC (estimate at completion) {cost_eac}, computed as {eac_formula}; VAC (BAC - EAC) {cost_vac}.
+[end if]
+
 ## S-curve by {period}
 
-The curve has {period_count} periods; this table shows at most the first 36. Period values are spread linearly over calendar time between the assignment dates (an approximation of P6's spread); only the values at the data date are exact. Cumulative % are of each curve's own budget; forecast = actual, then remaining.
+The curve has {period_count} periods; this table shows at most the first 36. Period values are spread over the working time of each assignment's calendar (and on its resource curve when it has one), an approximation of P6's spread; only the values at the data date are exact. Cumulative % are of each curve's own budget; forecast = actual, then remaining.
 
 [table: periods]
 

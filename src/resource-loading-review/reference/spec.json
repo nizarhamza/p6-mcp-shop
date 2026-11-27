@@ -1,0 +1,54 @@
+{
+  "spec": 1,
+  "steps": [
+    {"id": "rl", "tool": "p6_resource_loading", "args": {"project": "{project}", "period": "{period}", "resource": "{resource}", "limit": 200},
+     "why": "time-phased load per resource and period against its limit, totals, peaks and counts"}
+  ],
+  "slots": {
+    "data_date": {"step": "rl", "path": "data_date", "format": "date", "meaning": "data date"},
+    "last_f9": {"step": "rl", "path": "schedule_state.last_schedule_date", "format": "datetime", "meaning": "last F9 in P6"},
+    "stale": {"step": "rl", "path": "schedule_state.stale", "format": "flag", "meaning": "changed by this server after the last F9"},
+    "total_rows": {"step": "rl", "path": "total", "format": "int", "unit": "count", "meaning": "resource periods (one row per resource and loaded period)"},
+    "res_count": {"step": "rl", "path": "counts.resources", "format": "int", "unit": "count", "meaning": "resources with assignments"},
+    "over_periods": {"step": "rl", "path": "counts.over_allocated_periods", "format": "int", "unit": "count", "meaning": "over-allocated resource periods (labor and nonlabor)"},
+    "res_over": {"step": "rl", "path": "counts.resources_over", "format": "int", "unit": "count", "meaning": "resources over their limit in at least one period"},
+    "material": {"step": "rl", "path": "counts.material_resources", "format": "int", "unit": "count", "meaning": "material resources (own unit, no limit)"},
+    "no_limit": {"step": "rl", "path": "counts.no_limit", "format": "list", "none": "none", "meaning": "labor and nonlabor resources without a max units limit or a calendar"}
+  },
+  "tables": {
+    "resources": {
+      "step": "rl", "rows": "resources", "cap": 30, "noun": "resources", "empty": "No resource is assigned.",
+      "meaning": "One row per resource, labor and nonlabor first, then material: stored quantities, the peak period and the over-allocated periods (n/a: no limit).",
+      "columns": [
+        {"key": "resource", "head": "Resource", "path": ["resource", "name"], "format": "id_name"},
+        {"key": "kind", "head": "Kind", "path": "kind", "format": "text"},
+        {"key": "unit", "head": "Unit", "path": "unit", "format": "text"},
+        {"key": "budget", "head": "Budget", "path": "budget", "format": "n1", "unit": "qty"},
+        {"key": "actual", "head": "Actual", "path": "actual", "format": "n1", "unit": "qty"},
+        {"key": "remaining", "head": "Remaining", "path": "remaining", "format": "n1", "unit": "qty"},
+        {"key": "at_completion", "head": "At completion", "path": "at_completion", "format": "n1", "unit": "qty"},
+        {"key": "max_units", "head": "Max units/h", "path": "max_units_per_hour", "format": "n2"},
+        {"key": "peak_period", "head": "Peak period", "path": "peak.period", "format": "text"},
+        {"key": "peak_load", "head": "Peak load", "path": "peak.load", "format": "n1", "unit": "qty"},
+        {"key": "peak_available", "head": "Available at peak", "path": "peak.available", "format": "n1", "unit": "qty"},
+        {"key": "peak_pct", "head": "Peak load %", "path": "peak.load_pct", "format": "pct1", "unit": "%"},
+        {"key": "over_periods", "head": "Over-allocated periods", "path": "over_periods", "format": "int", "unit": "count", "none": "no limit"}
+      ]
+    },
+    "over": {
+      "step": "rl", "rows": "rows", "filter": "over", "cap": 30, "noun": "resource periods", "empty": "No period is over-allocated on this page.",
+      "meaning": "The resource periods of the page whose load (actual + remaining) is above what the resource can give.",
+      "columns": [
+        {"key": "resource", "head": "Resource", "path": ["resource", "name"], "format": "id_name"},
+        {"key": "period", "head": "Period", "path": "period", "format": "text"},
+        {"key": "load", "head": "Load", "path": "load", "format": "n1", "unit": "qty"},
+        {"key": "available", "head": "Available", "path": "available", "format": "n1", "unit": "qty"},
+        {"key": "load_pct", "head": "Load %", "path": "load_pct", "format": "pct1", "unit": "%"},
+        {"key": "over_by", "head": "Over by", "path": "over_by", "format": "n1", "unit": "qty"}
+      ]
+    }
+  },
+  "checks": [
+    {"equal": ["rl.data_date", "rl.schedule_state.data_date"], "text": "same data date"}
+  ]
+}

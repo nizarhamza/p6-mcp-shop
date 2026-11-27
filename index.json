@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "generated_at": "2026-11-12T16:51:42Z",
+  "generated_at": "2026-11-27T15:56:06Z",
   "skills": [
     {
       "schema": 1,
@@ -83,10 +83,10 @@
       "min_app_version": "1.9.0",
       "author": "nizarhamza",
       "license": "Apache-2.0",
-      "version": 1,
-      "published_at": "2026-10-28T15:15:51Z",
+      "version": 2,
+      "published_at": "2026-11-27T15:56:06Z",
       "core": true,
-      "sha256": "93496d7324474e1a3badc086eff52ca431d4e731dbb55e7708be36a7123d13cb"
+      "sha256": "35ecc90fb48348396193c662925ebea0b2de0c0927f404e8d041bf13f6c7d1e5"
     },
     {
       "schema": 1,
@@ -141,10 +141,10 @@
       "min_app_version": "1.9.0",
       "author": "nizarhamza",
       "license": "Apache-2.0",
-      "version": 4,
-      "published_at": "2026-10-28T15:15:51Z",
+      "version": 5,
+      "published_at": "2026-11-27T15:56:06Z",
       "core": true,
-      "sha256": "ab33069c040dda9b6dd93dd361b5313fbd44d40c63f0ea931decfe28d22d0061"
+      "sha256": "6c1e17d30581e09f1e84f8b73f60a21f37236b55d7ce23a74410c97cd385aea2"
     },
     {
       "schema": 1,
@@ -171,7 +171,7 @@
       "kind": "p6mcp-skill",
       "name": "progress-earned-value",
       "title": "Progress and earned value",
-      "description": "Progress of a P6 project in units: % complete by every method, earned value and SPI at the data date, the S-curve per month or week against the baseline, and progress by WBS. Use when the user asks how far a project has progressed, for its earned value or SPI, or for an S-curve.",
+      "description": "Progress of a P6 project in units: % complete by every method, earned value and SPI at the data date, cost earned value (CPI, EAC), the S-curve per month or week against the baseline, and progress by WBS. Use when the user asks how far a project has progressed, for its earned value or SPI, or for an S-curve.",
       "tools": [
         "p6_list_projects",
         "p6_list_wbs",
@@ -179,13 +179,33 @@
         "p6_project_summary"
       ],
       "writes": false,
-      "min_app_version": "1.9.0",
+      "min_app_version": "3.5.0",
+      "author": "nizarhamza",
+      "license": "Apache-2.0",
+      "version": 2,
+      "published_at": "2026-11-27T15:56:06Z",
+      "core": true,
+      "sha256": "72317f5ff7b99bb1272ce3e1a6dcfbee999f2759daa0f5a464b12fa24bbaebb5"
+    },
+    {
+      "schema": 1,
+      "kind": "p6mcp-skill",
+      "name": "resource-loading-review",
+      "title": "Resource loading review",
+      "description": "Time-phased resource loading of a P6 project per month or week: per resource the totals, the peak period and the over-allocated periods against what its calendar and max units allow, the periods over the limit and the resources without a limit (read only). Use when the user asks about resource loading, histograms, peaks or over-allocated resources.",
+      "tools": [
+        "p6_list_projects",
+        "p6_resource_loading",
+        "p6_resource_summary"
+      ],
+      "writes": false,
+      "min_app_version": "3.5.0",
       "author": "nizarhamza",
       "license": "Apache-2.0",
       "version": 1,
-      "published_at": "2026-10-28T15:15:51Z",
+      "published_at": "2026-11-27T15:56:06Z",
       "core": true,
-      "sha256": "ad99d3cb13bada5da9bf724ac1fd188170f5cf01ca28f526d40858348e2704e5"
+      "sha256": "9e45ed8b017a77565ab4984374adb6df01af8e56f2a89bf84e56278667113bb3"
     },
     {
       "schema": 1,
@@ -257,6 +277,27 @@
     {
       "schema": 1,
       "kind": "p6mcp-skill",
+      "name": "trend-report",
+      "title": "Trend across updates",
+      "description": "Trend of a P6 schedule across its updates: per update the data date, finish and its variance against the first and the previous update, units % and baseline planned %, SPI, critical, near critical and negative float counts, DCMA grade, failed checks and BEI, milestone slips and what changed between updates (read only). Use when the user asks how a schedule evolved over its updates or for a trend report.",
+      "tools": [
+        "p6_health_check",
+        "p6_list_projects",
+        "p6_trend",
+        "p6_update_integrity"
+      ],
+      "writes": false,
+      "min_app_version": "3.5.0",
+      "author": "nizarhamza",
+      "license": "Apache-2.0",
+      "version": 1,
+      "published_at": "2026-11-27T15:56:06Z",
+      "core": true,
+      "sha256": "aecb6b9357eef8590d583813c2c2e248d990c693eb3d995011862ce111da0c64"
+    },
+    {
+      "schema": 1,
+      "kind": "p6mcp-skill",
       "name": "update-import-safely",
       "title": "Update import (safe)",
       "description": "Import an updated XER into an existing P6 project safely: inspect the file, dry run the update, report what it would change and what the XER lacks, then apply only on the user's explicit yes. Use when the user wants to import or load an XER update into a project.",
@@ -299,7 +340,7 @@
       "kind": "p6mcp-skill",
       "name": "weekly-update-review",
       "title": "Weekly update review",
-      "description": "Weekly schedule update review of a P6 project: progress, finish dates, critical path, slippage against the baseline, changes since the previous update when given, progress issues and a critical look-ahead, with fixed actions (read only). Use when the user asks for a weekly update review, a status report or how a project is progressing.",
+      "description": "Weekly schedule update review of a P6 project: progress and cost indexes, finish dates, critical path, slippage against the baseline, changes since the previous update when given, progress issues and a critical look-ahead, with fixed actions (read only). Use when the user asks for a weekly update review, a status report or how a project is progressing.",
       "tools": [
         "p6_compare_projects",
         "p6_critical_path",
@@ -309,13 +350,13 @@
         "p6_project_summary"
       ],
       "writes": false,
-      "min_app_version": "1.10.0",
+      "min_app_version": "3.5.0",
       "author": "nizarhamza",
       "license": "Apache-2.0",
-      "version": 3,
-      "published_at": "2026-10-29T09:46:05Z",
+      "version": 4,
+      "published_at": "2026-11-27T15:56:06Z",
       "core": true,
-      "sha256": "fdaeba0ea7058f606adf5f733c21ad4172f8a0f214279b61e8625f0e0280734c"
+      "sha256": "7bec471d7740efd892ba4f12e54620461c6de043efc9db053c4947cc85791f2f"
     }
   ]
 }

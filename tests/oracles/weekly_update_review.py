@@ -490,6 +490,12 @@ def _logic_mode(o):
 
 # ----------------------------------------------------------------- slots and tables
 
+
+def _pev_cost(o):
+    """Cost earned value at the data date, as the progress-earned-value oracle computes it."""
+    from oracles.progress_earned_value import cost
+    return cost(o)
+
 SLOTS = {
     "data_date": lambda o: _project(o, "last_recalc_date"),
     "last_f9": lambda o: _project(o, "last_schedule_date"),
@@ -501,6 +507,11 @@ SLOTS = {
     "mismatch": lambda o: _pct(o)["mismatch"],
     "bl_planned_pct": lambda o: _baseline_at_dd(o)["pct"],
     "spi_units": lambda o: _baseline_at_dd(o)["spi"],
+    "currency": lambda o: _pev_cost(o)["currency"],
+    "cost_cpi": lambda o: _pev_cost(o)["cpi"],
+    "cost_spi": lambda o: _pev_cost(o)["spi"],
+    "cost_eac": lambda o: _pev_cost(o)["eac"],
+    "cost_vac": lambda o: _pev_cost(o)["vac"],
     "scheduled_finish": lambda o: _project(o, "scd_end_date"),
     "must_finish": lambda o: _project(o, "plan_end_date"),
     "vs_must_cd": lambda o: _cd(_project(o, "plan_end_date"), _project(o, "scd_end_date")),

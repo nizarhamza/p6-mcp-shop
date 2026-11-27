@@ -1,6 +1,6 @@
 ---
 name: p6-weekly-update-review
-description: "Weekly schedule update review of a P6 project: progress, finish dates, critical path, slippage against the baseline, changes since the previous update when given, progress issues and a critical look-ahead, with fixed actions (read only). Use when the user asks for a weekly update review, a status report or how a project is progressing."
+description: "Weekly schedule update review of a P6 project: progress and cost indexes, finish dates, critical path, slippage against the baseline, changes since the previous update when given, progress issues and a critical look-ahead, with fixed actions (read only). Use when the user asks for a weekly update review, a status report or how a project is progressing."
 ---
 <!-- p6mcp skill: written by P6 MCP Settings, overwritten on the next install -->
 <!-- p6mcp files: ["reference/report.md", "reference/checks.md", "reference/spec.json", "reference/fields.md", "reference/example.md"] -->
@@ -23,10 +23,10 @@ This skill gives you every figure: you copy fields, you never compute them.
 
 Calls, in this order. Each call is one page: the report shows that page and says when there are more,
 so do not read further pages.
-1. sum = p6_project_summary(project="<project>"): progress, finish, baseline.
+1. sum = p6_project_summary(project="<project>"): progress, cost, finish, baseline.
 2. prog = p6_progress_check(project="<project>", sample_size=5): out of sequence, status checks.
-3. cp = p6_critical_path(project="<project>", limit=15): critical activities.
-4. la = p6_lookahead(project="<project>", weeks=<weeks>, critical_only=true, limit=20): critical look-ahead.
+3. cp = p6_critical_path(project="<project>", fields=["task_name", "status_code", "early_start_date", "early_end_date", "rem_dur_d", "total_float_d"], limit=15): critical activities.
+4. la = p6_lookahead(project="<project>", weeks=<weeks>, critical_only=true, fields=["task_name", "total_float_d"], limit=20): critical look-ahead.
 5. cmp = p6_compare_projects(project="<project>", section="activities", min_variance_days=5, limit=15): slippage against the baseline. If this call returns an error, keep its message as cmp.error (its other fields are null).
 6. prev = p6_compare_projects(project="<project>", other="<previous>", section="activities", min_variance_days=0, limit=15): changes since the previous update. Make this call only when <previous> is given; when it is empty, skip it (its fields are null).
 Leave out an argument whose value is empty (previous).

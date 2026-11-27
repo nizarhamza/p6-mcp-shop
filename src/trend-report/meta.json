@@ -1,0 +1,12 @@
+{
+  "name": "trend-report",
+  "title": "Trend across updates",
+  "description": "Trend of a P6 schedule across its updates: per update the data date, finish and its variance against the first and the previous update, units % and baseline planned %, SPI, critical, near critical and negative float counts, DCMA grade, failed checks and BEI, milestone slips and what changed between updates (read only). Use when the user asks how a schedule evolved over its updates or for a trend report.",
+  "args": [
+    {"name": "updates", "description": "Project IDs of the updates, separated by commas (empty: give eps)", "default": ""},
+    {"name": "eps", "description": "EPS ID holding the updates, used when updates is empty", "default": ""},
+    {"name": "near_days", "description": "Near critical: total float up to this many days", "default": "10"}
+  ],
+  "min_app_version": "3.5.0",
+  "example_args": {"updates": "DEMO-SS225_BL,DEMO-SS225_PREV,DEMO-SS225"}
+}

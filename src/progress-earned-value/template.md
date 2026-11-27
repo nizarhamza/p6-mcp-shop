@@ -1,4 +1,4 @@
-Progress and earned value of project {project} in units: % complete by every method, earned value and SPI at the data date, the S-curve per {period} against the baseline {baseline} (the project baseline when it is empty), and progress by level 1 WBS. Nothing is written to the database.
+Progress and earned value of project {project} in units: % complete by every method, earned value and SPI at the data date, cost earned value (BAC, PV, EV, AC, CPI, SPI, EAC, VAC), the S-curve per {period} against the baseline {baseline} (the project baseline when it is empty), and progress by level 1 WBS. Nothing is written to the database.
 
 This skill gives you every figure: you copy fields, you never compute them.
 - reference/spec.json: the calls, the slots (each a field of one call) and the tables.

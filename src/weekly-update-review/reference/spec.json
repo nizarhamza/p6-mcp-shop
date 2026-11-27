@@ -1,10 +1,10 @@
 {
 "spec": 1,
 "steps": [
-{"id": "sum", "tool": "p6_project_summary", "args": {"project": "{project}"}, "why": "progress, finish, baseline"},
+{"id": "sum", "tool": "p6_project_summary", "args": {"project": "{project}"}, "why": "progress, cost, finish, baseline"},
 {"id": "prog", "tool": "p6_progress_check", "args": {"project": "{project}", "sample_size": 5}, "why": "out of sequence, status checks"},
-{"id": "cp", "tool": "p6_critical_path", "args": {"project": "{project}", "limit": 15}, "why": "critical activities"},
-{"id": "la", "tool": "p6_lookahead", "args": {"project": "{project}", "weeks": "{weeks}", "critical_only": true, "limit": 20}, "why": "critical look-ahead"},
+{"id": "cp", "tool": "p6_critical_path", "args": {"project": "{project}", "fields": ["task_name", "status_code", "early_start_date", "early_end_date", "rem_dur_d", "total_float_d"], "limit": 15}, "why": "critical activities"},
+{"id": "la", "tool": "p6_lookahead", "args": {"project": "{project}", "weeks": "{weeks}", "critical_only": true, "fields": ["task_name", "total_float_d"], "limit": 20}, "why": "critical look-ahead"},
 {"id": "cmp", "tool": "p6_compare_projects", "args": {"project": "{project}", "section": "activities", "min_variance_days": 5, "limit": 15}, "optional": true, "why": "slippage against the baseline"},
 {"id": "prev", "tool": "p6_compare_projects", "args": {"project": "{project}", "other": "{previous}", "section": "activities", "min_variance_days": 0, "limit": 15}, "when": "previous", "why": "changes since the previous update"}
 ],
@@ -19,6 +19,11 @@
 "mismatch": {"step": "sum", "path": "percent_complete.units_vs_physical_mismatch", "format": "int", "meaning": "physical % and units % differ"},
 "bl_planned_pct": {"step": "sum", "path": "baseline.planned_units_pct_at_data_date", "format": "pct1", "unit": "%", "meaning": "baseline planned units %"},
 "spi_units": {"step": "sum", "path": "baseline.spi_units", "format": "n2", "meaning": "SPI in units"},
+"currency": {"step": "sum", "path": "cost.currency", "format": "text", "none": "database currency", "meaning": "base currency of the costs"},
+"cost_cpi": {"step": "sum", "path": "cost.cpi", "format": "n2", "meaning": "CPI: earned / actual cost"},
+"cost_spi": {"step": "sum", "path": "cost.spi", "format": "n2", "meaning": "SPI in cost: earned / baseline planned cost"},
+"cost_eac": {"step": "sum", "path": "cost.eac", "format": "n0", "unit": "cost", "meaning": "estimate at completion"},
+"cost_vac": {"step": "sum", "path": "cost.vac", "format": "n0", "unit": "cost", "meaning": "VAC: budget at completion - EAC"},
 "scheduled_finish": {"step": "sum", "path": "dates.scheduled_finish", "format": "date", "meaning": "scheduled finish"},
 "must_finish": {"step": "sum", "path": "dates.must_finish_by", "format": "date", "meaning": "must finish by"},
 "vs_must_cd": {"step": "sum", "path": "dates.finish_vs_must_finish_by_cd", "format": "n1", "unit": "cd", "meaning": "finish - must finish"},

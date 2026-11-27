@@ -1,9 +1,9 @@
 {
   "spec": 1,
   "steps": [
-    {"id": "crit", "tool": "p6_lookahead", "args": {"project": "{project}", "weeks": "{weeks}", "critical_only": true, "limit": 30},
+    {"id": "crit", "tool": "p6_lookahead", "args": {"project": "{project}", "weeks": "{weeks}", "critical_only": true, "fields": ["task_name", "status_code", "total_float_d"], "limit": 30},
      "why": "critical activities of the window"},
-    {"id": "all", "tool": "p6_lookahead", "args": {"project": "{project}", "weeks": "{weeks}", "limit": 50},
+    {"id": "all", "tool": "p6_lookahead", "args": {"project": "{project}", "weeks": "{weeks}", "fields": ["task_name", "status_code", "total_float_d"], "limit": 50},
      "why": "every activity of the window, weeks, counts, data date"}
   ],
   "slots": {

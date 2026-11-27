@@ -22,8 +22,8 @@ This skill gives you every figure: you copy fields, you never compute them.
 
 Calls, in this order. Each call is one page: the report shows that page and says when there are more,
 so do not read further pages.
-1. crit = p6_lookahead(project="<project>", weeks=<weeks>, critical_only=true, limit=30): critical activities of the window.
-2. all = p6_lookahead(project="<project>", weeks=<weeks>, limit=50): every activity of the window, weeks, counts, data date.
+1. crit = p6_lookahead(project="<project>", weeks=<weeks>, critical_only=true, fields=["task_name", "status_code", "total_float_d"], limit=30): critical activities of the window.
+2. all = p6_lookahead(project="<project>", weeks=<weeks>, fields=["task_name", "status_code", "total_float_d"], limit=50): every activity of the window, weeks, counts, data date.
 
 Write the report:
 1. Start from reference/report.md. Replace each slot placeholder (a slot name in curly braces) by the field
